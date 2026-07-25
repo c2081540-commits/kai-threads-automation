@@ -1,0 +1,17 @@
+{
+  "generated_at": null,
+  "candidates": [],
+  "schema": {
+    "title": "投稿テーマ",
+    "topic": "相手の気持ち|音信不通|冷却期間|復縁行動",
+    "angle": "投稿の切り口",
+    "why_now": "今扱う理由",
+    "suggested_format": "three_choice|one_card|checklist|question",
+    "urgency": "0-10",
+    "demand": "0-10",
+    "comment_potential": "0-10",
+    "discovered_at": "YYYY-MM-DD",
+    "expires_at": "YYYY-MM-DD",
+    "source_urls": []
+  }
+}
