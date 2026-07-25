@@ -1,0 +1,75 @@
+threads-daily.yml
+
+
+name: Threads daily cycle
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 21:00 JST（GitHub側の混雑により遅れる場合があります）
+    - cron: "0 12 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: threads-daily-cycle
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-cjk
+          pip install -r requirements.txt
+
+      - name: Analyze and create the next post
+        env:
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          THREADS_API_VERSION: ${{ vars.THREADS_API_VERSION || 'v1.0' }}
+          AUTO_PUBLISH: "false"
+          DATABASE_PATH: data/tarot_growth.db
+        run: python -m app.cli cycle
+
+      - name: Publish image URL
+        run: |
+          git config user.name "threads-growth-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add generated/ data/tarot_growth.db data/post_history.csv data/analysis_report.md data/research_inbox.json
+          if ! git diff --cached --quiet; then
+            git commit -m "content: prepare daily Threads post"
+            git push
+          fi
+
+      - name: Post to Threads with image
+        if: ${{ vars.AUTO_PUBLISH == 'true' }}
+        env:
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          THREADS_API_VERSION: ${{ vars.THREADS_API_VERSION || 'v1.0' }}
+          DATABASE_PATH: data/tarot_growth.db
+          IMAGE_BASE_URL: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}
+        run: |
+          python -m app.cli publish-latest
+          python -m app.cli export
+
+      - name: Save publishing result
+        if: ${{ vars.AUTO_PUBLISH == 'true' }}
+        run: |
+          git add data/tarot_growth.db data/post_history.csv data/analysis_report.md
+          if ! git diff --cached --quiet; then
+            git commit -m "data: record Threads publishing result"
+            git push
+          fi
