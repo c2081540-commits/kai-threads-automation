@@ -9,6 +9,7 @@ os.environ["MIN_BODY_LENGTH"] = "20"
 
 from app.db import init_db, connect
 from app.planner import plan
+from app.planner import CARDS
 from app.safety import check
 from app.events import active_events
 from app.publisher import publish
@@ -42,6 +43,21 @@ class SystemTest(unittest.TestCase):
         with connect() as con:
             after = con.execute("SELECT COUNT(*) FROM drafts").fetchone()[0]
         self.assertEqual(after - before, 2)
+
+    def test_all_22_major_arcana_are_loaded(self):
+        self.assertEqual(len(CARDS), 22)
+        self.assertEqual(len({card["id"] for card in CARDS}), 22)
+
+    def test_three_choice_uses_real_card_images(self):
+        result = plan(seed=20260725)
+        self.assertTrue(os.path.isfile(result["image_path"]))
+        with connect() as con:
+            row = con.execute(
+                "SELECT cards_json FROM drafts WHERE id=?", (result["draft_id"],)
+            ).fetchone()
+        cards = __import__("json").loads(row["cards_json"])
+        self.assertEqual(len(cards), 3)
+        self.assertEqual(len({card["id"] for card in cards}), 3)
 
     def test_valentine_countdown_is_forced(self):
         events = active_events(date(2027, 2, 7))
