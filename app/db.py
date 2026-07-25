@@ -16,6 +16,9 @@ CREATE TABLE IF NOT EXISTS drafts(
   body_hash TEXT NOT NULL UNIQUE,
   image_path TEXT,
   status TEXT NOT NULL DEFAULT 'pending',
+  publish_attempts INTEGER NOT NULL DEFAULT 0,
+  last_publish_error TEXT,
+  publish_started_at TEXT,
   quality_json TEXT NOT NULL,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
@@ -26,6 +29,9 @@ CREATE TABLE IF NOT EXISTS posts(
   permalink TEXT,
   published_at TEXT DEFAULT CURRENT_TIMESTAMP,
   status TEXT DEFAULT 'published',
+  insight_attempts INTEGER NOT NULL DEFAULT 0,
+  last_insight_attempt_at TEXT,
+  last_insight_error TEXT,
   FOREIGN KEY(draft_id) REFERENCES drafts(id)
 );
 CREATE TABLE IF NOT EXISTS metrics(
@@ -82,6 +88,23 @@ def init_db():
         columns = {row["name"] for row in con.execute("PRAGMA table_info(drafts)")}
         if "image_path" not in columns:
             con.execute("ALTER TABLE drafts ADD COLUMN image_path TEXT")
+        if "publish_attempts" not in columns:
+            con.execute(
+                "ALTER TABLE drafts ADD COLUMN publish_attempts INTEGER NOT NULL DEFAULT 0"
+            )
+        if "last_publish_error" not in columns:
+            con.execute("ALTER TABLE drafts ADD COLUMN last_publish_error TEXT")
+        if "publish_started_at" not in columns:
+            con.execute("ALTER TABLE drafts ADD COLUMN publish_started_at TEXT")
+        post_columns = {row["name"] for row in con.execute("PRAGMA table_info(posts)")}
+        if "insight_attempts" not in post_columns:
+            con.execute(
+                "ALTER TABLE posts ADD COLUMN insight_attempts INTEGER NOT NULL DEFAULT 0"
+            )
+        if "last_insight_attempt_at" not in post_columns:
+            con.execute("ALTER TABLE posts ADD COLUMN last_insight_attempt_at TEXT")
+        if "last_insight_error" not in post_columns:
+            con.execute("ALTER TABLE posts ADD COLUMN last_insight_error TEXT")
 
 
 def jdump(value):

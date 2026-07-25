@@ -44,13 +44,19 @@ def _update_knowledge(con, dimension, key, result):
 def analyze():
     api = ThreadsAPI()
     results = []
+    errors = []
+    max_requests_per_run = 5
+    requests_used = 0
     with connect() as con:
         posts = con.execute(
             """SELECT p.*,d.format,d.topic,d.cta_type,d.hook_type
                FROM posts p JOIN drafts d ON d.id=p.draft_id
-               WHERE p.status='published' ORDER BY p.id"""
+               WHERE p.status='published' AND COALESCE(p.insight_attempts,0) < 2
+               ORDER BY p.id"""
         ).fetchall()
         for post in posts:
+            if requests_used >= max_requests_per_run:
+                break
             age = _age_hours(post["published_at"])
             already = con.execute(
                 "SELECT 1 FROM metrics WHERE post_id=? LIMIT 1", (post["id"],)
@@ -59,7 +65,23 @@ def analyze():
             # 同じ投稿を毎日再学習して重みが偏ることを防ぐ。
             if age < 18 or already:
                 continue
-            raw = api.insights(post["threads_media_id"])
+            # 取得前に回数を記録。障害時でも同一実行内で再送しない。
+            con.execute(
+                """UPDATE posts SET insight_attempts=insight_attempts+1,
+                   last_insight_attempt_at=CURRENT_TIMESTAMP,last_insight_error=NULL
+                   WHERE id=?""",
+                (post["id"],),
+            )
+            requests_used += 1
+            try:
+                raw = api.insights(post["threads_media_id"])
+            except Exception as exc:
+                con.execute(
+                    "UPDATE posts SET last_insight_error=? WHERE id=?",
+                    (str(exc)[:1000], post["id"]),
+                )
+                errors.append({"post_id": post["id"], "error": str(exc)})
+                continue
             v = _values(raw)
             views = max(int(v.get("views", 0)), 1)
             like_rate = int(v.get("likes", 0)) / views
@@ -89,5 +111,10 @@ def analyze():
                 "reply_rate": reply_rate, "share_rate": share_rate,
                 "weighted_score": weighted, "updated_weights": weights,
             })
-    log_event("analysis_completed", {"posts": results})
+    if errors:
+        log_event("insight_fetch_failed", {"errors": errors})
+    log_event(
+        "analysis_completed",
+        {"posts": results, "requests_used": requests_used, "errors": len(errors)},
+    )
     return results
