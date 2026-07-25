@@ -1,6 +1,3 @@
-threads-daily.yml
-
-
 name: Threads daily cycle
 
 on:
