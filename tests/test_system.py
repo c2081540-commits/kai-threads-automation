@@ -1,9 +1,12 @@
 import os
+import shutil
 import tempfile
 import unittest
 from unittest.mock import patch
 
 TEST_DB = tempfile.NamedTemporaryFile(suffix=".db", delete=False).name
+TEST_WORKDIR = tempfile.mkdtemp(prefix="kai-tarot-tests-")
+ORIGINAL_WORKDIR = os.getcwd()
 os.environ["DATABASE_PATH"] = TEST_DB
 os.environ["MIN_BODY_LENGTH"] = "20"
 
@@ -20,12 +23,15 @@ from datetime import date
 class SystemTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        os.chdir(TEST_WORKDIR)
         init_db()
 
     @classmethod
     def tearDownClass(cls):
+        os.chdir(ORIGINAL_WORKDIR)
         if os.path.exists(TEST_DB):
             os.unlink(TEST_DB)
+        shutil.rmtree(TEST_WORKDIR, ignore_errors=True)
 
     def test_blocks_false_guarantee(self):
         self.assertFalse(check("この方法なら必ず復縁できます。")["passed"])
