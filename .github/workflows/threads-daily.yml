@@ -31,12 +31,16 @@ jobs:
           sudo apt-get install -y fonts-noto-cjk
           pip install -r requirements.txt
 
+      - name: Validate before any API request
+        run: python -m unittest discover -s tests -v
+
       - name: Analyze and create the next post
         env:
           THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
           THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
           THREADS_API_VERSION: ${{ vars.THREADS_API_VERSION || 'v1.0' }}
           AUTO_PUBLISH: "false"
+          AUTO_ANALYZE: ${{ vars.AUTO_ANALYZE || 'false' }}
           DATABASE_PATH: data/tarot_growth.db
         run: python -m app.cli cycle
 
