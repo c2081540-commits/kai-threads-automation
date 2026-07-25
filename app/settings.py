@@ -21,6 +21,7 @@ class Settings:
     threads_api_version: str = os.getenv("THREADS_API_VERSION", "v1.0")
     timezone: str = os.getenv("TIMEZONE", "Asia/Tokyo")
     auto_publish: bool = _bool("AUTO_PUBLISH")
+    auto_analyze: bool = _bool("AUTO_ANALYZE")
     database_path: str = os.getenv("DATABASE_PATH", "data/tarot_growth.db")
     min_body_length: int = int(os.getenv("MIN_BODY_LENGTH", "80"))
     max_body_length: int = int(os.getenv("MAX_BODY_LENGTH", "500"))

@@ -1,14 +1,16 @@
 from pathlib import Path
-import os
 import math
+import os
+
 from PIL import Image, ImageDraw, ImageFont
 
+
 WIDTH, HEIGHT = 1080, 1350
-NAVY = "#121B38"
-NAVY_2 = "#202A4C"
-CREAM = "#FFF8EB"
-GOLD = "#D9AD57"
-MUTED = "#C8C2B7"
+BG = "#071217"
+CREAM = "#F3EBDD"
+GOLD = "#D8B76A"
+MUTED = "#B9B2A4"
+CARD_DIR = Path(__file__).resolve().parents[1] / "tarot_cards"
 
 FONT_CANDIDATES = (
     os.getenv("FONT_PATH", ""),
@@ -16,15 +18,13 @@ FONT_CANDIDATES = (
     "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
     "/usr/share/fonts/truetype/noto/NotoSansJP-Bold.ttf",
     "/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc",
-    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
 )
 
 
-def _font(size, bold=False):
-    candidates = list(FONT_CANDIDATES)
-    if not bold:
-        candidates.reverse()
-    for path in candidates:
+def _font(size):
+    for path in FONT_CANDIDATES:
         if path and Path(path).exists():
             return ImageFont.truetype(path, size=size)
     raise RuntimeError(
@@ -32,29 +32,12 @@ def _font(size, bold=False):
     )
 
 
-def _gradient():
-    image = Image.new("RGB", (WIDTH, HEIGHT), NAVY)
-    px = image.load()
-    start = (18, 27, 56)
-    end = (41, 31, 58)
-    for y in range(HEIGHT):
-        t = y / (HEIGHT - 1)
-        color = tuple(int(a * (1 - t) + b * t) for a, b in zip(start, end))
-        for x in range(WIDTH):
-            px[x, y] = color
-    return image
-
-
-def _wrap(text, max_chars=14):
-    text = text.replace("【3枚から選ぶ】", "").strip("。 ")
-    count = min(3, max(1, math.ceil(len(text) / max_chars)))
-    base, extra = divmod(len(text), count)
-    sizes = [base + (1 if i < extra else 0) for i in range(count)]
-    lines, offset = [], 0
-    for size in sizes:
-        lines.append(text[offset:offset + size])
-        offset += size
-    return lines
+def _canvas():
+    image = Image.new("RGB", (WIDTH, HEIGHT), BG)
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((20, 20, WIDTH - 21, HEIGHT - 21), outline=GOLD, width=3)
+    draw.rectangle((31, 31, WIDTH - 32, HEIGHT - 32), outline="#5D4A25", width=1)
+    return image, draw
 
 
 def _center_text(draw, text, y, font, fill=CREAM):
@@ -63,70 +46,163 @@ def _center_text(draw, text, y, font, fill=CREAM):
     draw.text((x, y), text, font=font, fill=fill)
 
 
-def _card(draw, x, y, w, h, label=None):
-    draw.rounded_rectangle((x, y, x + w, y + h), radius=28, fill="#F0E4C9", outline=GOLD, width=8)
-    inset = 22
+def _wrap_by_width(draw, text, font, max_width):
+    lines, current = [], ""
+    for char in text:
+        candidate = current + char
+        if draw.textbbox((0, 0), candidate, font=font)[2] <= max_width:
+            current = candidate
+        else:
+            if current:
+                lines.append(current)
+            current = char
+    if current:
+        lines.append(current)
+    return lines
+
+
+def _fit_font(draw, text, max_width, start=68, minimum=30):
+    for size in range(start, minimum - 1, -2):
+        font = _font(size)
+        if draw.textbbox((0, 0), text, font=font)[2] <= max_width:
+            return font
+    return _font(minimum)
+
+
+def _title(draw, text):
+    cleaned = text.replace("【3枚から選ぶ】", "").strip("。 ")
+    font = _fit_font(draw, cleaned, 920)
+    lines = _wrap_by_width(draw, cleaned, font, 920)
+    y = 82
+    for line in lines[:2]:
+        _center_text(draw, line, y, font)
+        y += font.size + 18
+    return y
+
+
+def _card_path(card):
+    path = CARD_DIR / f"{int(card['id']):02d}_{card['slug']}.png"
+    if not path.is_file():
+        raise FileNotFoundError(f"カード画像がありません: {path}")
+    return path
+
+
+def _card_art(card, size, darken=False):
+    source = Image.open(_card_path(card)).convert("RGB")
+    source.thumbnail(size, Image.Resampling.LANCZOS)
+    canvas = Image.new("RGBA", size, (0, 0, 0, 0))
+    x = (size[0] - source.width) // 2
+    y = (size[1] - source.height) // 2
+    canvas.paste(source, (x, y))
+    mask = Image.new("L", size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle(
+        (0, 0, size[0] - 1, size[1] - 1), radius=22, fill=255
+    )
+    canvas.putalpha(mask)
+    if darken:
+        canvas = Image.alpha_composite(
+            canvas, Image.new("RGBA", size, (2, 9, 13, 95))
+        )
+    return canvas
+
+
+def _paste_card(image, draw, card, xy, size, darken=False):
+    x, y = xy
+    art = _card_art(card, size, darken=darken)
+    image.paste(art, (x, y), art)
     draw.rounded_rectangle(
-        (x + inset, y + inset, x + w - inset, y + h - inset),
-        radius=20, fill=NAVY_2, outline=GOLD, width=4,
-    )
-    cx, cy = x + w // 2, y + h // 2
-    draw.ellipse((cx - 56, cy - 56, cx + 56, cy + 56), outline=GOLD, width=5)
-    draw.polygon(
-        [(cx, cy - 82), (cx + 24, cy - 24), (cx + 82, cy),
-         (cx + 24, cy + 24), (cx, cy + 82), (cx - 24, cy + 24),
-         (cx - 82, cy), (cx - 24, cy - 24)],
+        (x - 3, y - 3, x + size[0] + 2, y + size[1] + 2),
+        radius=23,
         outline=GOLD,
+        width=3,
     )
-    if label:
-        font = _font(54, bold=True)
-        box = draw.textbbox((0, 0), label, font=font)
-        draw.ellipse((cx - 45, y + h + 26, cx + 45, y + h + 116), fill=GOLD)
-        draw.text((cx - (box[2] - box[0]) / 2, y + h + 34), label, font=font, fill=NAVY)
 
 
-def render_post_image(draft_id, fmt, title, cards=None, event=None):
-    image = _gradient()
-    draw = ImageDraw.Draw(image)
-    draw.ellipse((-260, -330, 440, 370), fill="#26355F")
-    draw.ellipse((760, 980, 1300, 1520), fill="#3B2946")
+def _render_choice(draft_id, title, cards):
+    if len(cards) != 3:
+        raise ValueError("3枚選択画像には異なるカードが3枚必要です")
+    if len({int(card["id"]) for card in cards}) != 3:
+        raise ValueError("同じカードを重複配置できません")
 
-    small = _font(34, bold=True)
-    title_font = _font(68, bold=True)
-    _center_text(draw, "KAI  復縁タロット", 72, small, GOLD)
+    image, draw = _canvas()
+    _title(draw, title)
+    _center_text(draw, "一度深呼吸して、直感で1枚選んでください", 235, _font(34), MUTED)
 
-    title_y = 185
-    for line in _wrap(title, 13):
-        _center_text(draw, line, title_y, title_font)
-        title_y += 92
+    card_w, card_h = 286, 429
+    gap = 37
+    start_x = (WIDTH - card_w * 3 - gap * 2) // 2
+    top = 345
+    label_font = _font(58)
+    for index, (label, card) in enumerate(zip("ABC", cards)):
+        x = start_x + index * (card_w + gap)
+        _paste_card(image, draw, card, (x, top), (card_w, card_h), darken=True)
+        box = draw.textbbox((0, 0), label, font=label_font)
+        draw.text(
+            (x + (card_w - (box[2] - box[0])) / 2, top + card_h + 36),
+            label,
+            font=label_font,
+            fill=GOLD,
+        )
+
+    _center_text(draw, "結果は投稿本文へ", 1015, _font(44), CREAM)
+    _center_text(draw, "Kai 復縁タロット", 1235, _font(28), GOLD)
+    out = Path("generated") / f"post-{draft_id:05d}.png"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    image.save(out, "PNG", optimize=True)
+    return str(out)
+
+
+def _render_result(draft_id, label, card):
+    image, draw = _canvas()
+    _center_text(draw, f"{label}を選んだあなたへ", 70, _font(56), CREAM)
+    _paste_card(image, draw, card, (72, 205), (365, 548))
+
+    draw.text((500, 225), card["name_ja"], font=_font(62), fill=GOLD)
+    keyword_text = "・".join(card["keywords"])
+    y = 320
+    for line in _wrap_by_width(draw, keyword_text, _font(32), 500):
+        draw.text((500, y), line, font=_font(32), fill=MUTED)
+        y += 46
+
+    y = 470
+    body_font = _font(40)
+    for line in _wrap_by_width(draw, card["love"], body_font, 500):
+        draw.text((500, y), line, font=body_font, fill=CREAM)
+        y += 60
+
+    draw.line((75, 850, 1005, 850), fill="#5D4A25", width=2)
+    _center_text(draw, "焦って結論を出さず、今日できる一歩を選ぶ", 930, _font(38), CREAM)
+    _center_text(draw, "Kai 復縁タロット", 1235, _font(28), GOLD)
+    out = Path("generated") / f"post-{draft_id:05d}-result-{label}.png"
+    image.save(out, "PNG", optimize=True)
+    return str(out)
+
+
+def _render_single(draft_id, fmt, title, card, event=None):
+    image, draw = _canvas()
+    _title(draw, title)
+    _paste_card(image, draw, card, (358, 360), (365, 548))
 
     if fmt == "event_countdown" and event:
-        if event["days_left"] == 0:
-            badge = "TODAY"
-            sub = f"今日は{event['name']}"
-        else:
-            badge = f"あと {event['days_left']} 日"
-            sub = event["name"]
-        _center_text(draw, badge, 520, _font(108, bold=True), GOLD)
-        _center_text(draw, sub, 665, _font(48, bold=True))
-        _card(draw, 420, 790, 240, 360)
-    elif fmt == "three_choice":
-        for x, label in zip((105, 420, 735), ("A", "B", "C")):
-            _card(draw, x, 660, 240, 360, label)
-        _center_text(draw, "直感で1枚選んでください", 1190, _font(42, bold=True), MUTED)
-    elif fmt == "checklist":
-        for i, text in enumerate(("感情の勢い", "別れた原因", "今の距離感"), 1):
-            y = 620 + (i - 1) * 155
-            draw.ellipse((135, y, 215, y + 80), fill=GOLD)
-            _center = _font(42, bold=True)
-            draw.text((160, y + 12), str(i), font=_center, fill=NAVY)
-            draw.text((255, y + 8), text, font=_font(52, bold=True), fill=CREAM)
-        _center_text(draw, "焦って動く前に確認", 1130, _font(42, bold=True), MUTED)
+        badge = "TODAY" if event["days_left"] == 0 else f"あと {event['days_left']} 日"
+        _center_text(draw, badge, 980, _font(58), GOLD)
     else:
-        _card(draw, 390, 625, 300, 450)
-        _center_text(draw, "今日の1枚から読み解く", 1140, _font(42, bold=True), MUTED)
+        _center_text(draw, card["name_ja"], 980, _font(58), GOLD)
+    _center_text(draw, "Kai 復縁タロット", 1235, _font(28), GOLD)
 
     out = Path("generated") / f"post-{draft_id:05d}.png"
     out.parent.mkdir(parents=True, exist_ok=True)
     image.save(out, "PNG", optimize=True)
     return str(out)
+
+
+def render_post_image(draft_id, fmt, title, cards=None, event=None):
+    cards = cards or []
+    if not cards:
+        raise ValueError("画像生成に使うカードが指定されていません")
+    if fmt == "three_choice":
+        main = _render_choice(draft_id, title, cards[:3])
+        for label, card in zip("ABC", cards[:3]):
+            _render_result(draft_id, label, card)
+        return main
+    return _render_single(draft_id, fmt, title, cards[0], event)

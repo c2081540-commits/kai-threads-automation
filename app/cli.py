@@ -14,7 +14,7 @@ def export_csv(path="data/post_history.csv"):
     with connect() as con:
         rows = con.execute(
             """SELECT p.id,p.permalink,p.published_at,d.format,d.topic,d.hook_type,
-                      d.cta_type,d.body,m.views,m.likes,m.replies,m.reposts,
+                      d.cta_type,d.cards_json,d.body,m.views,m.likes,m.replies,m.reposts,
                       m.quotes,m.shares,m.like_rate,m.reply_rate,m.share_rate,
                       m.weighted_score,m.collected_at
                FROM posts p JOIN drafts d ON d.id=p.draft_id
@@ -24,7 +24,7 @@ def export_csv(path="data/post_history.csv"):
         ).fetchall()
     fields = list(rows[0].keys()) if rows else [
         "id","permalink","published_at","format","topic","hook_type","cta_type",
-        "body","views","likes","replies","reposts","quotes","shares","like_rate",
+        "cards_json","body","views","likes","replies","reposts","quotes","shares","like_rate",
         "reply_rate","share_rate","weighted_score","collected_at",
     ]
     with open(path, "w", encoding="utf-8-sig", newline="") as f:
@@ -88,7 +88,11 @@ def cycle():
     from .publisher import publish
     from .settings import settings
     analysis = []
-    if settings.threads_user_id and settings.threads_access_token:
+    if (
+        settings.auto_analyze
+        and settings.threads_user_id
+        and settings.threads_access_token
+    ):
         analysis = analyze()
     draft = plan()
     exported = export_csv()

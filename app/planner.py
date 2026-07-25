@@ -2,6 +2,7 @@ import hashlib
 import json
 import math
 import random
+from pathlib import Path
 from datetime import datetime
 from difflib import SequenceMatcher
 from .db import connect, jdump, log_event
@@ -11,28 +12,20 @@ from .image_maker import render_post_image
 from .safety import check
 from .settings import settings
 
-CARDS = [
-    ("愚者", "まだ形は決まっていません。思い込みを手放すと関係が動きやすくなります。"),
-    ("魔術師", "連絡を再開するきっかけを作れる時期です。短く自然な言葉が向いています。"),
-    ("女教皇", "相手は感情を表に出していません。今は答えを急がず、静かに状況を見る段階です。"),
-    ("女帝", "好意や安心感は残っています。結論を迫るより、穏やかな接点を育てる方が有効です。"),
-    ("皇帝", "相手は自分のペースを守りたい状態です。追いかけすぎると距離を置かれやすくなります。"),
-    ("恋人", "気持ちが完全に消えたとは限りません。ただし曖昧な関係をどう選び直すかが鍵です。"),
-    ("戦車", "停滞を破る行動力が出ています。ただし感情の勢いだけで長文を送らないでください。"),
-    ("隠者", "相手は一人で考える時間を必要としています。沈黙を拒絶と決めつけないことが大切です。"),
-    ("運命の輪", "関係を見直す転機が近づいています。以前と同じ接し方を繰り返さないことが重要です。"),
-    ("正義", "復縁には感情だけでなく、別れた原因の整理が必要です。公平に二人の問題を見直してください。"),
-    ("吊るされた男", "今すぐ動かすより、見方を変える時間です。待つことにも意味があります。"),
-    ("死神", "以前と同じ関係には戻れません。復縁するなら、新しい関係として作り直す必要があります。"),
-    ("節制", "少しずつ距離を戻す流れです。挨拶や短いやり取りから始めるのが向いています。"),
-    ("悪魔", "執着や不安が判断を曇らせています。相手の反応だけで一日を決めないようにしてください。"),
-    ("塔", "予想外の変化を示します。衝動的な連絡より、まず状況を受け止めることが先です。"),
-    ("星", "関係を立て直す希望はあります。期待だけでなく、自分の生活も整えておきましょう。"),
-    ("月", "相手の本音が見えにくく、不安が膨らみやすい状態です。推測を事実として扱わないでください。"),
-    ("太陽", "素直なコミュニケーションが助けになります。重い確認より、明るく短い接点が向いています。"),
-    ("審判", "過去の関係を見直す機会です。謝罪や反省を伝えるなら、言い訳を混ぜないことが大切です。"),
-    ("世界", "一つの区切りが見えています。復縁だけに固執せず、自分が納得できる結末を選べます。"),
-]
+CARD_DATA_PATH = Path(__file__).resolve().parents[1] / "tarot_cards" / "cards.json"
+
+
+def _load_cards():
+    cards = json.loads(CARD_DATA_PATH.read_text(encoding="utf-8"))
+    if len(cards) != 22:
+        raise RuntimeError(f"大アルカナは22枚必要です。現在: {len(cards)}枚")
+    ids = [int(card["id"]) for card in cards]
+    if len(set(ids)) != 22:
+        raise RuntimeError("cards.jsonに重複したカードIDがあります")
+    return cards
+
+
+CARDS = _load_cards()
 
 TOPICS = {
     "相手の気持ち": ["連絡が来ない彼の本音", "別れたあとも残っている気持ち", "今、彼が言えずにいること"],
@@ -77,39 +70,36 @@ def _three_choice(topic, title, cards, cta):
         "一度深呼吸して、気になるカードを1枚選んでください。",
         "",
     ]
-    for label, (name, meaning) in zip(("A", "B", "C"), cards):
-        lines.extend([f"{label}｜{name}", meaning, ""])
+    for label, card in zip(("A", "B", "C"), cards):
+        lines.extend([f"{label}｜{card['name_ja']}", card["love"], ""])
     lines.append(cta)
     return "\n".join(lines)
 
 
 def _one_card(topic, title, card, cta):
-    name, meaning = card
     return (
         f"{title}。\n\n"
-        f"今日のカードは「{name}」。\n"
-        f"{meaning}\n\n"
+        f"今日のカードは「{card['name_ja']}」。\n"
+        f"{card['love']}\n\n"
         "占いは相手を決めつけるものではなく、次の行動を整理するためのヒントです。\n\n"
         f"{cta}"
     )
 
 
 def _checklist(topic, title, card, cta):
-    name, meaning = card
     return (
         f"{title}。焦る前に3つ確認してください。\n\n"
         "①感情のまま長文を送ろうとしていないか\n"
         "②別れた原因が何も変わっていないままではないか\n"
         "③相手の反応だけで自分の価値を決めていないか\n\n"
-        f"「{name}」はこう伝えています。\n{meaning}\n\n{cta}"
+        f"「{card['name_ja']}」はこう伝えています。\n{card['love']}\n\n{cta}"
     )
 
 
 def _question(topic, title, card, cta):
-    name, meaning = card
     return (
         f"復縁したい相手に、今すぐ連絡するべき？\n\n"
-        f"今回のカードは「{name}」。\n{meaning}\n\n"
+        f"今回のカードは「{card['name_ja']}」。\n{card['love']}\n\n"
         "連絡するかどうかは、最後のやり取りと別れた原因によって変わります。"
         "あなたは今「追う」「待つ」のどちらで迷っていますか？\n\n"
         f"{cta}"
@@ -117,14 +107,13 @@ def _question(topic, title, card, cta):
 
 
 def _event_post(event, card, cta):
-    name, meaning = card
     if event["days_left"] == 0:
         hook = f"今日は{event['name']}。連絡する前に、一度だけ確認してください。"
     else:
         hook = f"{event['name']}まであと{event['days_left']}日。焦って連絡する前に。"
     return (
         f"{hook}\n\n"
-        f"「{name}」は、{meaning}\n\n"
+        f"「{card['name_ja']}」は、{card['love']}\n\n"
         f"{event['angle']}ことが大切です。\n"
         "記念日だから動くのではなく、今の二人に必要な距離を選んでください。\n\n"
         f"{cta}"
@@ -132,11 +121,10 @@ def _event_post(event, card, cta):
 
 
 def _market_post(idea, card, cta):
-    name, meaning = card
     angle = idea.get("angle") or idea.get("why_now") or "今の状況を落ち着いて整理する"
     return (
         f"{idea['title']}\n\n"
-        f"今日のカードは「{name}」。\n{meaning}\n\n"
+        f"今日のカードは「{card['name_ja']}」。\n{card['love']}\n\n"
         f"今回のポイントは、{angle}こと。\n"
         "相手の気持ちを決めつけず、自分が次に取れる行動へ落とし込んでください。\n\n"
         f"{cta}"
@@ -147,6 +135,39 @@ def _similarity(body):
     with connect() as con:
         rows = con.execute("SELECT body FROM drafts ORDER BY id DESC LIMIT 100").fetchall()
     return max((SequenceMatcher(None, body, r["body"]).ratio() for r in rows), default=0)
+
+
+def _recent_card_sets(limit=100):
+    with connect() as con:
+        rows = con.execute(
+            "SELECT cards_json FROM drafts ORDER BY id DESC LIMIT ?", (limit,)
+        ).fetchall()
+    sets = []
+    for row in rows:
+        try:
+            cards = json.loads(row["cards_json"])
+            ids = frozenset(
+                int(card["id"]) for card in cards if isinstance(card, dict) and "id" in card
+            )
+            if ids:
+                sets.append(ids)
+        except (TypeError, ValueError, json.JSONDecodeError):
+            continue
+    return sets
+
+
+def _select_cards(count=3):
+    recent = _recent_card_sets()
+    last = recent[0] if recent else frozenset()
+    for _ in range(100):
+        chosen = random.sample(CARDS, count)
+        chosen_ids = frozenset(int(card["id"]) for card in chosen)
+        if chosen_ids in recent:
+            continue
+        if count == 3 and last and len(chosen_ids & last) > 1:
+            continue
+        return chosen
+    raise RuntimeError("重複しないカードの組み合わせを選定できませんでした")
 
 
 def plan(seed=None):
@@ -164,7 +185,7 @@ def plan(seed=None):
     forced_event = next((event for event in events if event["forced"]), None)
     if forced_event:
         cta_type = "save" if forced_event["days_left"] else "comment"
-        card = random.choice(CARDS)
+        card = _select_cards(1)[0]
         body = _event_post(forced_event, card, CTA[cta_type])
         quality = check(body)
         quality["similarity"] = round(_similarity(body), 3)
@@ -231,7 +252,7 @@ def plan(seed=None):
         fmt = candidate["format"]
         topic = candidate["topic"]
         cta_type = candidate["cta"]
-        cards = random.sample(CARDS, 3)
+        cards = _select_cards(3)
         if candidate["source"] == "market":
             title = candidate["idea"]["title"]
             body = _market_post(candidate["idea"], cards[0], CTA[cta_type])
