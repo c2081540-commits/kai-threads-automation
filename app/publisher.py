@@ -38,33 +38,82 @@ def publish(draft_id):
         settings.image_base_url.rstrip("/") + "/" + quote(row["image_path"])
         if row["image_path"] else None
     )
+    replies = json.loads(row["replies_json"] or "[]")
+    media_id = None
+    reply_ids = []
     try:
         api = ThreadsAPI()
         media_id = (
             api.publish_image(row["body"], image_url)
             if image_url else api.publish_text(row["body"])
         )
+        for reply in replies:
+            label = reply.get("label")
+            reply_image_path = (
+                f"generated/post-{draft_id:05d}-result-{label}.png"
+                if row["format"] == "three_choice" and label in "ABC"
+                else reply.get("image_path")
+            )
+            reply_image_url = (
+                settings.image_base_url.rstrip("/")
+                + "/"
+                + quote(reply_image_path)
+                if reply_image_path
+                else None
+            )
+            reply_id = (
+                api.publish_image(reply["text"], reply_image_url, media_id)
+                if reply_image_url
+                else api.publish_text(reply["text"], media_id)
+            )
+            reply_ids.append(reply_id)
     except Exception as exc:
         with connect() as con:
+            if media_id:
+                con.execute(
+                    """INSERT OR IGNORE INTO posts(
+                       draft_id,threads_media_id,status,reply_ids_json
+                       ) VALUES(?,?,?,?)""",
+                    (
+                        draft_id,
+                        media_id,
+                        "partial_reply_failure",
+                        json.dumps(reply_ids, ensure_ascii=False),
+                    ),
+                )
+                status = "partial_reply_failure"
+            else:
+                status = "publish_failed"
             con.execute(
-                "UPDATE drafts SET status='publish_failed',last_publish_error=? WHERE id=?",
-                (str(exc)[:1000], draft_id),
+                "UPDATE drafts SET status=?,last_publish_error=? WHERE id=?",
+                (status, str(exc)[:1000], draft_id),
             )
-        log_event("post_publish_failed", {"draft_id": draft_id, "error": str(exc)})
+        log_event(
+            "post_publish_failed",
+            {
+                "draft_id": draft_id,
+                "parent_media_id": media_id,
+                "completed_reply_ids": reply_ids,
+                "error": str(exc),
+                "automatic_retry": False,
+            },
+        )
         raise
 
     # threads_publish がIDを返した時点で成功扱いにする。
     # permalink取得のための追加GETは行わず、不要なAPI要求と二重投稿を防ぐ。
     with connect() as con:
         cur = con.execute(
-            "INSERT INTO posts(draft_id,threads_media_id) VALUES(?,?)",
-            (draft_id, media_id),
+            """INSERT INTO posts(draft_id,threads_media_id,reply_ids_json)
+               VALUES(?,?,?)""",
+            (draft_id, media_id, json.dumps(reply_ids, ensure_ascii=False)),
         )
         con.execute("UPDATE drafts SET status='published' WHERE id=?", (draft_id,))
     result = {
         "post_id": cur.lastrowid,
         "id": media_id,
         "image_url": image_url,
+        "reply_ids": reply_ids,
     }
     log_event("post_published", result)
     return result

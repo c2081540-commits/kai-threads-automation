@@ -144,7 +144,7 @@ def _render_choice(draft_id, title, cards):
             fill=GOLD,
         )
 
-    _center_text(draw, "結果は投稿本文へ", 1015, _font(44), CREAM)
+    _center_text(draw, "結果は返信欄へ", 1015, _font(44), CREAM)
     _center_text(draw, "Kai 復縁タロット", 1235, _font(28), GOLD)
     out = Path("generated") / f"post-{draft_id:05d}.png"
     out.parent.mkdir(parents=True, exist_ok=True)

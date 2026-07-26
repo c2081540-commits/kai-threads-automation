@@ -28,6 +28,9 @@ class Settings:
     duplicate_threshold: float = float(os.getenv("DUPLICATE_THRESHOLD", "0.72"))
     exploration_rate: float = float(os.getenv("EXPLORATION_RATE", "0.25"))
     image_base_url: str = os.getenv("IMAGE_BASE_URL", "")
+    content_queue_path: str = os.getenv(
+        "CONTENT_QUEUE_PATH", "data/content_queue.json"
+    )
 
 
 settings = Settings()

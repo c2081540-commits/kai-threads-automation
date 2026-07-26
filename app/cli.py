@@ -101,6 +101,59 @@ def cycle():
     return result
 
 
+def verify_auth():
+    from .threads_api import ThreadsAPI
+
+    identity = ThreadsAPI().verify_identity()
+    return {
+        "status": "ok",
+        "username": identity["username"],
+        "user_id_matches": True,
+        "api_requests": 1,
+        "posting_requests": 0,
+    }
+
+
+def preview_slot(slot, target_date=None):
+    from .queue import preview
+
+    return preview(slot, target_date)
+
+
+def dispatch(slot, target_date=None):
+    from .publisher import publish
+    from .queue import prepare, preview
+    from .settings import settings
+
+    safe_preview = preview(slot, target_date)
+    if safe_preview["status"] == "no_content":
+        return safe_preview
+    if not settings.auto_publish:
+        return {
+            **safe_preview,
+            "status": "preview_only",
+            "reason": "AUTO_PUBLISHがtrueではないため投稿しませんでした",
+        }
+    row = prepare(slot, target_date)
+    if not row:
+        return {
+            "status": "no_content",
+            "slot": slot,
+            "api_requested": False,
+        }
+    if row["status"] == "published":
+        return {
+            "status": "already_published",
+            "draft_id": row["id"],
+            "api_requested": False,
+        }
+    if row["status"] != "pending":
+        raise RuntimeError(
+            f"予約投稿は再送できない状態です: {row['status']}"
+        )
+    return {"status": "published", **publish(row["id"])}
+
+
 def main():
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -112,6 +165,13 @@ def main():
     sub.add_parser("cycle")
     sub.add_parser("export")
     sub.add_parser("publish-latest")
+    sub.add_parser("verify-auth")
+    preview_cmd = sub.add_parser("preview-slot")
+    preview_cmd.add_argument("slot", choices=("morning", "noon", "evening"))
+    preview_cmd.add_argument("--date")
+    dispatch_cmd = sub.add_parser("dispatch")
+    dispatch_cmd.add_argument("slot", choices=("morning", "noon", "evening"))
+    dispatch_cmd.add_argument("--date")
     publish_cmd = sub.add_parser("publish")
     publish_cmd.add_argument("draft_id", type=int)
     args = parser.parse_args()
@@ -134,6 +194,12 @@ def main():
         if not rows:
             raise RuntimeError("投稿待ちの案がありません")
         show(publish(rows[0]["id"]))
+    elif args.cmd == "verify-auth":
+        show(verify_auth())
+    elif args.cmd == "preview-slot":
+        show(preview_slot(args.slot, args.date))
+    elif args.cmd == "dispatch":
+        show(dispatch(args.slot, args.date))
     elif args.cmd == "analyze":
         from .analytics import analyze
         show(analyze())

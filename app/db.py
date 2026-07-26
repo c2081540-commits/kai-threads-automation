@@ -19,6 +19,10 @@ CREATE TABLE IF NOT EXISTS drafts(
   publish_attempts INTEGER NOT NULL DEFAULT 0,
   last_publish_error TEXT,
   publish_started_at TEXT,
+  source_key TEXT UNIQUE,
+  scheduled_at TEXT,
+  slot TEXT,
+  replies_json TEXT NOT NULL DEFAULT '[]',
   quality_json TEXT NOT NULL,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
@@ -32,6 +36,7 @@ CREATE TABLE IF NOT EXISTS posts(
   insight_attempts INTEGER NOT NULL DEFAULT 0,
   last_insight_attempt_at TEXT,
   last_insight_error TEXT,
+  reply_ids_json TEXT NOT NULL DEFAULT '[]',
   FOREIGN KEY(draft_id) REFERENCES drafts(id)
 );
 CREATE TABLE IF NOT EXISTS metrics(
@@ -96,6 +101,20 @@ def init_db():
             con.execute("ALTER TABLE drafts ADD COLUMN last_publish_error TEXT")
         if "publish_started_at" not in columns:
             con.execute("ALTER TABLE drafts ADD COLUMN publish_started_at TEXT")
+        if "source_key" not in columns:
+            con.execute("ALTER TABLE drafts ADD COLUMN source_key TEXT")
+            con.execute(
+                "CREATE UNIQUE INDEX IF NOT EXISTS idx_drafts_source_key "
+                "ON drafts(source_key) WHERE source_key IS NOT NULL"
+            )
+        if "scheduled_at" not in columns:
+            con.execute("ALTER TABLE drafts ADD COLUMN scheduled_at TEXT")
+        if "slot" not in columns:
+            con.execute("ALTER TABLE drafts ADD COLUMN slot TEXT")
+        if "replies_json" not in columns:
+            con.execute(
+                "ALTER TABLE drafts ADD COLUMN replies_json TEXT NOT NULL DEFAULT '[]'"
+            )
         post_columns = {row["name"] for row in con.execute("PRAGMA table_info(posts)")}
         if "insight_attempts" not in post_columns:
             con.execute(
@@ -105,6 +124,10 @@ def init_db():
             con.execute("ALTER TABLE posts ADD COLUMN last_insight_attempt_at TEXT")
         if "last_insight_error" not in post_columns:
             con.execute("ALTER TABLE posts ADD COLUMN last_insight_error TEXT")
+        if "reply_ids_json" not in post_columns:
+            con.execute(
+                "ALTER TABLE posts ADD COLUMN reply_ids_json TEXT NOT NULL DEFAULT '[]'"
+            )
 
 
 def jdump(value):

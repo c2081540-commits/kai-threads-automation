@@ -3,6 +3,8 @@ import shutil
 import tempfile
 import unittest
 from unittest.mock import patch
+from pathlib import Path
+from types import SimpleNamespace
 
 TEST_DB = tempfile.NamedTemporaryFile(suffix=".db", delete=False).name
 TEST_WORKDIR = tempfile.mkdtemp(prefix="kai-tarot-tests-")
@@ -17,6 +19,7 @@ from app.safety import check
 from app.events import active_events
 from app.publisher import publish
 from app.db import jdump
+from app.queue import preview, prepare
 from datetime import date
 
 
@@ -139,6 +142,98 @@ class SystemTest(unittest.TestCase):
 
         self.assertEqual(SuccessfulAPI.calls, 1)
         self.assertEqual(result["id"], "media-123")
+
+    def test_empty_gpt_queue_stops_without_api(self):
+        Path("data").mkdir(exist_ok=True)
+        Path("data/content_queue.json").write_text("[]", encoding="utf-8")
+        result = preview("morning", "2030-01-01")
+        self.assertEqual(result["status"], "no_content")
+        self.assertFalse(result["api_requested"])
+
+    def test_three_choice_queue_keeps_answers_in_replies(self):
+        Path("data").mkdir(exist_ok=True)
+        queue = [
+            {
+                "key": "test-three-choice",
+                "date": "2030-01-01",
+                "slot": "evening",
+                "status": "ready",
+                "format": "three_choice",
+                "topic": "相手の気持ち",
+                "title": "今の彼の本音",
+                "body": (
+                    "今の彼の本音を3枚から選んでください。\n\n"
+                    "一度深呼吸して、直感でA・B・Cから1枚選んでください。\n"
+                    "結果は返信欄へ。"
+                ),
+                "card_ids": [2, 6, 18],
+                "replies": [
+                    {"label": "A", "text": "Aの結果です。静かに状況を見極める時期です。"},
+                    {"label": "B", "text": "Bの結果です。二人の選択を整理してください。"},
+                    {"label": "C", "text": "Cの結果です。不安を事実だと決めつけないでください。"},
+                ],
+            }
+        ]
+        Path("data/content_queue.json").write_text(
+            __import__("json").dumps(queue, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        result = preview("evening", "2030-01-01")
+        self.assertEqual(result["status"], "ready")
+        self.assertNotIn("女教皇", result["body"])
+        self.assertEqual([x["label"] for x in result["replies"]], list("ABC"))
+        row = prepare("evening", "2030-01-01")
+        self.assertTrue(os.path.isfile(row["image_path"]))
+
+    def test_three_choice_publishes_parent_then_three_image_replies(self):
+        with connect() as con:
+            cur = con.execute(
+                """INSERT INTO drafts(
+                   format,topic,hook_type,cta_type,cards_json,body,body_hash,
+                   image_path,status,quality_json,replies_json
+                   ) VALUES(?,?,?,?,?,?,?,?,?,?,?)""",
+                (
+                    "three_choice",
+                    "復縁",
+                    "3択",
+                    "コメント",
+                    "[]",
+                    "直感でA・B・Cから1枚選んでください。結果は返信欄へ。",
+                    "reply-chain-test",
+                    "generated/post-99999.png",
+                    "pending",
+                    jdump({"passed": True}),
+                    jdump(
+                        [
+                            {"label": "A", "text": "Aの結果"},
+                            {"label": "B", "text": "Bの結果"},
+                            {"label": "C", "text": "Cの結果"},
+                        ]
+                    ),
+                ),
+            )
+            draft_id = cur.lastrowid
+
+        calls = []
+
+        class ReplyAPI:
+            def publish_image(self, text, image_url, reply_to_id=None):
+                calls.append((text, image_url, reply_to_id))
+                return f"media-{len(calls)}"
+
+            def publish_text(self, text, reply_to_id=None):
+                raise AssertionError("画像投稿である必要があります")
+
+        with patch("app.publisher.ThreadsAPI", ReplyAPI), patch(
+            "app.publisher.settings",
+            SimpleNamespace(image_base_url="https://example.com"),
+        ):
+            result = publish(draft_id)
+
+        self.assertEqual(len(calls), 4)
+        self.assertIsNone(calls[0][2])
+        self.assertEqual([call[2] for call in calls[1:]], ["media-1"] * 3)
+        self.assertEqual(result["reply_ids"], ["media-2", "media-3", "media-4"])
 
 
 if __name__ == "__main__":

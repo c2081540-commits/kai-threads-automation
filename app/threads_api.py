@@ -32,11 +32,31 @@ class ThreadsAPI:
         response.raise_for_status()
         return response.json()
 
-    def publish_text(self, text):
+    def verify_identity(self):
+        result = self._get(
+            "me",
+            {
+                "fields": "id,username",
+                "access_token": self.token,
+            },
+        )
+        if str(result.get("id")) != str(self.user_id):
+            raise RuntimeError(
+                "THREADS_USER_IDとアクセストークンの利用者が一致しません"
+            )
+        return {
+            "id": str(result["id"]),
+            "username": result.get("username", ""),
+        }
+
+    def publish_text(self, text, reply_to_id=None):
         common = {"access_token": self.token}
+        payload = {**common, "media_type": "TEXT", "text": text}
+        if reply_to_id:
+            payload["reply_to_id"] = reply_to_id
         container = self._post(
             f"{self.user_id}/threads",
-            {**common, "media_type": "TEXT", "text": text},
+            payload,
         )
         published = self._post(
             f"{self.user_id}/threads_publish",
@@ -44,16 +64,19 @@ class ThreadsAPI:
         )
         return published["id"]
 
-    def publish_image(self, text, image_url):
+    def publish_image(self, text, image_url, reply_to_id=None):
         common = {"access_token": self.token}
+        payload = {
+            **common,
+            "media_type": "IMAGE",
+            "image_url": image_url,
+            "text": text,
+        }
+        if reply_to_id:
+            payload["reply_to_id"] = reply_to_id
         container = self._post(
             f"{self.user_id}/threads",
-            {
-                **common,
-                "media_type": "IMAGE",
-                "image_url": image_url,
-                "text": text,
-            },
+            payload,
         )
         published = self._post(
             f"{self.user_id}/threads_publish",

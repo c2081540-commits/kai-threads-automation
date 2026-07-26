@@ -88,8 +88,16 @@ python -m app.cli publish 1
 # 18時間以上経過した未評価投稿を分析
 python -m app.cli analyze
 
-# 分析→企画→必要なら投稿→CSV出力
-python -m app.cli cycle
+# Threads接続確認（投稿は行わない）
+python -m app.cli verify-auth
+
+# 日本時間の指定枠をプレビュー（APIは呼ばない）
+python -m app.cli preview-slot morning
+python -m app.cli preview-slot noon
+python -m app.cli preview-slot evening
+
+# GPTが作成した予約キューから指定枠を配信
+python -m app.cli dispatch evening
 
 # 履歴CSVを再出力
 python -m app.cli export
@@ -108,13 +116,23 @@ python -m app.cli export
 
 - `THREADS_API_VERSION`：通常は `v1.0`
 - `AUTO_PUBLISH`：最初は `false`
+- `AUTO_ANALYZE`：接続・投稿確認後に`true`
 
-初回はActions画面から `Threads daily cycle` を手動実行し、投稿案と履歴だけ生成されることを確認します。
-問題がなければ `AUTO_PUBLISH` を `true` に変更します。
+予約時刻は日本時間の7:00、12:00、20:00です。GitHub Actionsの手動実行では
+`verify`、`preview`、`dispatch`を選べます。最初に`verify`を実行し、投稿せずに
+アクセストークンとThreadsユーザーIDの組み合わせを確認します。
+
+本番の投稿内容は`data/content_queue.json`へGPTが書き込みます。キューに
+`status: "ready"`の当日投稿がない場合は、ランダム生成へ切り替えず正常終了します。
+3択投稿は親投稿に表向きのカード3枚を表示し、A・B・Cの結果を画像付き返信として
+順番に投稿します。
 
 ## API安全設計
 
 - 投稿POSTはHTTP層で自動再試行しません。
+- GPT予約キュー以外の投稿を本番で自動生成しません。
+- 投稿在庫切れはエラーにせず、APIを呼ばずに終了します。
+- 3択の親投稿成功後に返信が失敗した場合、完了済みIDを記録して再送を止めます。
 - 投稿処理を開始する前にDBへ試行済み状態を保存します。
 - タイムアウトやAPIエラーが起きた案は `publish_failed` にして自動再送しません。
 - 投稿成功IDを受け取った後の追加メディア取得は行いません。
