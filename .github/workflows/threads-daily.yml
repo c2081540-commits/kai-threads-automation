@@ -10,6 +10,8 @@ on:
         type: choice
         options:
           - verify
+          - validate_week
+          - prepare_week
           - preview
           - prepare
           - dispatch
@@ -94,6 +96,19 @@ jobs:
           THREADS_API_VERSION: ${{ vars.THREADS_API_VERSION || 'v1.0' }}
         run: python -m app.cli verify-auth
 
+      - name: Validate weekly package without API
+        if: ${{ steps.route.outputs.operation == 'validate_week' }}
+        env:
+          CONTENT_QUEUE_PATH: data/content_queue.json
+        run: python -m app.cli validate-week
+
+      - name: Prepare full week without API
+        if: ${{ steps.route.outputs.operation == 'prepare_week' }}
+        env:
+          DATABASE_PATH: data/tarot_growth.db
+          CONTENT_QUEUE_PATH: data/content_queue.json
+        run: python -m app.cli prepare-week
+
       - name: Preview scheduled content
         if: ${{ steps.route.outputs.operation == 'preview' }}
         env:
@@ -146,11 +161,11 @@ jobs:
           python -m app.cli export
 
       - name: Save generated images and results
-        if: ${{ steps.route.outputs.operation == 'prepare' || steps.route.outputs.operation == 'dispatch' }}
+        if: ${{ steps.route.outputs.operation == 'prepare_week' || steps.route.outputs.operation == 'prepare' || steps.route.outputs.operation == 'dispatch' }}
         run: |
           git config user.name "threads-growth-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add generated/ data/tarot_growth.db data/post_history.csv data/analysis_report.md
+          git add generated/ reports/ data/content_queue.json data/tarot_growth.db data/post_history.csv data/analysis_report.md
           if ! git diff --cached --quiet; then
             git commit -m "data: record scheduled Threads run"
             git push
