@@ -1,16 +1,40 @@
-name: Threads daily cycle
+name: Threads scheduled dispatch
 
 on:
   workflow_dispatch:
+    inputs:
+      operation:
+        description: "実行内容"
+        required: true
+        default: verify
+        type: choice
+        options:
+          - verify
+          - preview
+          - dispatch
+      slot:
+        description: "投稿枠"
+        required: true
+        default: evening
+        type: choice
+        options:
+          - morning
+          - noon
+          - evening
+      target_date:
+        description: "確認日（YYYY-MM-DD、省略時は日本時間の今日）"
+        required: false
+        type: string
   schedule:
-    # 21:00 JST（GitHub側の混雑により遅れる場合があります）
-    - cron: "0 12 * * *"
+    - cron: "0 22 * * *" # 07:00 JST
+    - cron: "0 3 * * *"  # 12:00 JST
+    - cron: "0 11 * * *" # 20:00 JST
 
 permissions:
   contents: write
 
 concurrency:
-  group: threads-daily-cycle
+  group: threads-scheduled-dispatch
   cancel-in-progress: false
 
 jobs:
@@ -18,9 +42,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -34,43 +58,87 @@ jobs:
       - name: Validate before any API request
         run: python -m unittest discover -s tests -v
 
-      - name: Analyze and create the next post
+      - name: Resolve operation and slot
+        id: route
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          MANUAL_OPERATION: ${{ inputs.operation }}
+          MANUAL_SLOT: ${{ inputs.slot }}
+          MANUAL_DATE: ${{ inputs.target_date }}
+          SCHEDULE_EXPRESSION: ${{ github.event.schedule }}
+        run: |
+          if [ "$EVENT_NAME" = "schedule" ]; then
+            operation="dispatch"
+            case "$SCHEDULE_EXPRESSION" in
+              "0 22 * * *") slot="morning" ;;
+              "0 3 * * *") slot="noon" ;;
+              "0 11 * * *") slot="evening" ;;
+              *) echo "Unknown schedule"; exit 1 ;;
+            esac
+            target_date=""
+          else
+            operation="$MANUAL_OPERATION"
+            slot="$MANUAL_SLOT"
+            target_date="$MANUAL_DATE"
+          fi
+          echo "operation=$operation" >> "$GITHUB_OUTPUT"
+          echo "slot=$slot" >> "$GITHUB_OUTPUT"
+          echo "target_date=$target_date" >> "$GITHUB_OUTPUT"
+
+      - name: Verify Threads connection
+        if: ${{ steps.route.outputs.operation == 'verify' }}
         env:
           THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
           THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
           THREADS_API_VERSION: ${{ vars.THREADS_API_VERSION || 'v1.0' }}
-          AUTO_PUBLISH: "false"
-          AUTO_ANALYZE: ${{ vars.AUTO_ANALYZE || 'false' }}
-          DATABASE_PATH: data/tarot_growth.db
-        run: python -m app.cli cycle
+        run: python -m app.cli verify-auth
 
-      - name: Publish image URL
+      - name: Preview scheduled content
+        if: ${{ steps.route.outputs.operation == 'preview' }}
+        env:
+          CONTENT_QUEUE_PATH: data/content_queue.json
+        run: |
+          if [ -n "${{ steps.route.outputs.target_date }}" ]; then
+            python -m app.cli preview-slot "${{ steps.route.outputs.slot }}" --date "${{ steps.route.outputs.target_date }}"
+          else
+            python -m app.cli preview-slot "${{ steps.route.outputs.slot }}"
+          fi
+
+      - name: Dispatch scheduled content
+        if: ${{ steps.route.outputs.operation == 'dispatch' }}
+        env:
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          THREADS_API_VERSION: ${{ vars.THREADS_API_VERSION || 'v1.0' }}
+          AUTO_PUBLISH: ${{ vars.AUTO_PUBLISH || 'false' }}
+          DATABASE_PATH: data/tarot_growth.db
+          CONTENT_QUEUE_PATH: data/content_queue.json
+          IMAGE_BASE_URL: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}
+        run: |
+          if [ -n "${{ steps.route.outputs.target_date }}" ]; then
+            python -m app.cli dispatch "${{ steps.route.outputs.slot }}" --date "${{ steps.route.outputs.target_date }}"
+          else
+            python -m app.cli dispatch "${{ steps.route.outputs.slot }}"
+          fi
+
+      - name: Analyze old posts once each morning
+        if: ${{ steps.route.outputs.operation == 'dispatch' && steps.route.outputs.slot == 'morning' && vars.AUTO_ANALYZE == 'true' }}
+        env:
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          THREADS_API_VERSION: ${{ vars.THREADS_API_VERSION || 'v1.0' }}
+          DATABASE_PATH: data/tarot_growth.db
+        run: |
+          python -m app.cli analyze
+          python -m app.cli export
+
+      - name: Save generated images and results
+        if: ${{ steps.route.outputs.operation == 'dispatch' }}
         run: |
           git config user.name "threads-growth-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add generated/ data/tarot_growth.db data/post_history.csv data/analysis_report.md data/research_inbox.json
+          git add generated/ data/tarot_growth.db data/post_history.csv data/analysis_report.md
           if ! git diff --cached --quiet; then
-            git commit -m "content: prepare daily Threads post"
-            git push
-          fi
-
-      - name: Post to Threads with image
-        if: ${{ vars.AUTO_PUBLISH == 'true' }}
-        env:
-          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
-          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
-          THREADS_API_VERSION: ${{ vars.THREADS_API_VERSION || 'v1.0' }}
-          DATABASE_PATH: data/tarot_growth.db
-          IMAGE_BASE_URL: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}
-        run: |
-          python -m app.cli publish-latest
-          python -m app.cli export
-
-      - name: Save publishing result
-        if: ${{ vars.AUTO_PUBLISH == 'true' }}
-        run: |
-          git add data/tarot_growth.db data/post_history.csv data/analysis_report.md
-          if ! git diff --cached --quiet; then
-            git commit -m "data: record Threads publishing result"
+            git commit -m "data: record scheduled Threads run"
             git push
           fi
