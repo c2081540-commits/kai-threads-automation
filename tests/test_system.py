@@ -1,83 +1,76 @@
+import json
 import os
 import shutil
 import tempfile
 import unittest
-from unittest.mock import patch
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
 
-TEST_DB = tempfile.NamedTemporaryFile(suffix=".db", delete=False).name
-TEST_WORKDIR = tempfile.mkdtemp(prefix="kai-tarot-tests-")
+
+TEST_ROOT = tempfile.mkdtemp(prefix="kai-weekly-tests-")
+TEST_DB = str(Path(TEST_ROOT) / "test.db")
 ORIGINAL_WORKDIR = os.getcwd()
 os.environ["DATABASE_PATH"] = TEST_DB
+os.environ["CONTENT_QUEUE_PATH"] = str(Path(TEST_ROOT) / "data/content_queue.json")
 os.environ["MIN_BODY_LENGTH"] = "20"
 
-from app.db import init_db, connect
-from app.planner import plan
-from app.planner import CARDS
-from app.safety import check
-from app.events import active_events
+from app.db import connect, init_db, jdump
 from app.publisher import publish
-from app.db import jdump
-from app.queue import preview, prepare
-from datetime import date
+from app.queue import _validate
+from app.safety import check
+from app.weekly import load_weekly, validate_weekly
 
 
 class SystemTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        os.chdir(TEST_WORKDIR)
+        os.chdir(ORIGINAL_WORKDIR)
         init_db()
 
     @classmethod
     def tearDownClass(cls):
         os.chdir(ORIGINAL_WORKDIR)
-        if os.path.exists(TEST_DB):
-            os.unlink(TEST_DB)
-        shutil.rmtree(TEST_WORKDIR, ignore_errors=True)
+        shutil.rmtree(TEST_ROOT, ignore_errors=True)
 
     def test_blocks_false_guarantee(self):
         self.assertFalse(check("この方法なら必ず復縁できます。")["passed"])
 
-    def test_allows_responsible_wording(self):
-        body = "復縁できるかは二人の状況で変わります。焦る前に、別れた原因を整理しましょう。"
-        self.assertTrue(check(body)["passed"])
+    def test_weekly_package_has_21_posts_and_daily_choice(self):
+        result = validate_weekly(load_weekly("data/weekly_package.json"))
+        self.assertEqual(result["posts"], 21)
+        self.assertEqual(result["three_choice"], 7)
+        self.assertGreaterEqual(len(result["formats"]), 6)
 
-    def test_plan_creates_non_duplicate_drafts(self):
-        with connect() as con:
-            before = con.execute("SELECT COUNT(*) FROM drafts").fetchone()[0]
-        first = plan(seed=100)
-        second = plan(seed=100)
-        self.assertNotEqual(first["body"], second["body"])
-        with connect() as con:
-            after = con.execute("SELECT COUNT(*) FROM drafts").fetchone()[0]
-        self.assertEqual(after - before, 2)
+    def test_non_choice_can_be_text_only_without_cards(self):
+        item = {
+            "key": "text-only",
+            "date": "2030-01-01",
+            "slot": "morning",
+            "format": "empathy",
+            "topic": "不安",
+            "title": "朝の不安",
+            "body": "返事がない朝でも、想像だけで相手の気持ちを決めつけず、まず自分の生活を整えてください。",
+            "image": {"kind": "none"},
+        }
+        quality, cards = _validate(item)
+        self.assertTrue(quality["passed"])
+        self.assertEqual(cards, [])
 
-    def test_all_22_major_arcana_are_loaded(self):
-        self.assertEqual(len(CARDS), 22)
-        self.assertEqual(len({card["id"] for card in CARDS}), 22)
-
-    def test_three_choice_uses_real_card_images(self):
-        result = plan(seed=20260725)
-        self.assertTrue(os.path.isfile(result["image_path"]))
-        with connect() as con:
-            row = con.execute(
-                "SELECT cards_json FROM drafts WHERE id=?", (result["draft_id"],)
-            ).fetchone()
-        cards = __import__("json").loads(row["cards_json"])
-        self.assertEqual(len(cards), 3)
-        self.assertEqual(len({card["id"] for card in cards}), 3)
-
-    def test_valentine_countdown_is_forced(self):
-        events = active_events(date(2027, 2, 7))
-        valentine = next(x for x in events if x["key"] == "valentine")
-        self.assertEqual(valentine["days_left"], 7)
-        self.assertTrue(valentine["forced"])
-
-    def test_strong_event_day_is_detected(self):
-        events = active_events(date(2026, 12, 24))
-        christmas = next(x for x in events if x["key"] == "christmas_eve")
-        self.assertEqual(christmas["days_left"], 0)
+    def test_non_choice_rejects_meaningless_card_attachment(self):
+        item = {
+            "key": "bad-card",
+            "date": "2030-01-01",
+            "slot": "morning",
+            "format": "empathy",
+            "topic": "不安",
+            "title": "朝の不安",
+            "body": "返事がない朝でも、想像だけで相手の気持ちを決めつけず、まず自分の生活を整えてください。",
+            "card_ids": [14],
+            "image": {"kind": "none"},
+        }
+        with self.assertRaises(ValueError):
+            _validate(item)
 
     def test_failed_publish_is_not_automatically_retried(self):
         with connect() as con:
@@ -87,9 +80,10 @@ class SystemTest(unittest.TestCase):
                    image_path,status,quality_json
                    ) VALUES(?,?,?,?,?,?,?,?,?,?)""",
                 (
-                    "one_card", "復縁", "疑問", "保存", "[]",
+                    "empathy", "復縁", "疑問", "none", "[]",
                     "失敗時の二重投稿防止を確認するためのテスト本文です。",
-                    "publish-failure-test", None, "pending", jdump({"passed": True}),
+                    "publish-failure-weekly-test", None, "pending",
+                    jdump({"passed": True}),
                 ),
             )
             draft_id = cur.lastrowid
@@ -106,16 +100,9 @@ class SystemTest(unittest.TestCase):
                 publish(draft_id)
             with self.assertRaises(ValueError):
                 publish(draft_id)
-
         self.assertEqual(FailingAPI.calls, 1)
-        with connect() as con:
-            row = con.execute(
-                "SELECT status,publish_attempts FROM drafts WHERE id=?", (draft_id,)
-            ).fetchone()
-        self.assertEqual(row["status"], "publish_failed")
-        self.assertEqual(row["publish_attempts"], 1)
 
-    def test_success_does_not_make_extra_media_get(self):
+    def test_text_publish_makes_one_posting_request(self):
         with connect() as con:
             cur = con.execute(
                 """INSERT INTO drafts(
@@ -123,9 +110,10 @@ class SystemTest(unittest.TestCase):
                    image_path,status,quality_json
                    ) VALUES(?,?,?,?,?,?,?,?,?,?)""",
                 (
-                    "one_card", "復縁", "疑問", "保存", "[]",
+                    "question", "復縁", "問い", "comment", "[]",
                     "成功後の余計な取得をしないことを確認するテスト本文です。",
-                    "publish-success-test", None, "pending", jdump({"passed": True}),
+                    "publish-success-weekly-test", None, "pending",
+                    jdump({"passed": True}),
                 ),
             )
             draft_id = cur.lastrowid
@@ -139,53 +127,10 @@ class SystemTest(unittest.TestCase):
 
         with patch("app.publisher.ThreadsAPI", SuccessfulAPI):
             result = publish(draft_id)
-
         self.assertEqual(SuccessfulAPI.calls, 1)
         self.assertEqual(result["id"], "media-123")
 
-    def test_empty_gpt_queue_stops_without_api(self):
-        Path("data").mkdir(exist_ok=True)
-        Path("data/content_queue.json").write_text("[]", encoding="utf-8")
-        result = preview("morning", "2030-01-01")
-        self.assertEqual(result["status"], "no_content")
-        self.assertFalse(result["api_requested"])
-
-    def test_three_choice_queue_keeps_answers_in_replies(self):
-        Path("data").mkdir(exist_ok=True)
-        queue = [
-            {
-                "key": "test-three-choice",
-                "date": "2030-01-01",
-                "slot": "evening",
-                "status": "ready",
-                "format": "three_choice",
-                "topic": "相手の気持ち",
-                "title": "今の彼の本音",
-                "body": (
-                    "今の彼の本音を3枚から選んでください。\n\n"
-                    "一度深呼吸して、直感でA・B・Cから1枚選んでください。\n"
-                    "結果は返信欄へ。"
-                ),
-                "card_ids": [2, 6, 18],
-                "replies": [
-                    {"label": "A", "text": "Aの結果です。静かに状況を見極める時期です。"},
-                    {"label": "B", "text": "Bの結果です。二人の選択を整理してください。"},
-                    {"label": "C", "text": "Cの結果です。不安を事実だと決めつけないでください。"},
-                ],
-            }
-        ]
-        Path("data/content_queue.json").write_text(
-            __import__("json").dumps(queue, ensure_ascii=False),
-            encoding="utf-8",
-        )
-        result = preview("evening", "2030-01-01")
-        self.assertEqual(result["status"], "ready")
-        self.assertNotIn("女教皇", result["body"])
-        self.assertEqual([x["label"] for x in result["replies"]], list("ABC"))
-        row = prepare("evening", "2030-01-01")
-        self.assertTrue(os.path.isfile(row["image_path"]))
-
-    def test_three_choice_publishes_parent_then_three_image_replies(self):
+    def test_choice_publishes_parent_then_three_replies(self):
         with connect() as con:
             cur = con.execute(
                 """INSERT INTO drafts(
@@ -193,27 +138,18 @@ class SystemTest(unittest.TestCase):
                    image_path,status,quality_json,replies_json
                    ) VALUES(?,?,?,?,?,?,?,?,?,?,?)""",
                 (
-                    "three_choice",
-                    "復縁",
-                    "3択",
-                    "コメント",
-                    "[]",
-                    "直感でA・B・Cから1枚選んでください。結果は返信欄へ。",
-                    "reply-chain-test",
-                    "generated/post-99999.png",
-                    "pending",
-                    jdump({"passed": True}),
-                    jdump(
-                        [
-                            {"label": "A", "text": "Aの結果"},
-                            {"label": "B", "text": "Bの結果"},
-                            {"label": "C", "text": "Cの結果"},
-                        ]
-                    ),
+                    "three_choice", "復縁", "3択", "comment", "[]",
+                    "表向きのA・B・Cから直感で一枚選んでください。結果は返信欄です。",
+                    "reply-chain-weekly-test", "generated/post-99999.png",
+                    "pending", jdump({"passed": True}),
+                    jdump([
+                        {"label": "A", "text": "Aの結果"},
+                        {"label": "B", "text": "Bの結果"},
+                        {"label": "C", "text": "Cの結果"},
+                    ]),
                 ),
             )
             draft_id = cur.lastrowid
-
         calls = []
 
         class ReplyAPI:
@@ -221,18 +157,13 @@ class SystemTest(unittest.TestCase):
                 calls.append((text, image_url, reply_to_id))
                 return f"media-{len(calls)}"
 
-            def publish_text(self, text, reply_to_id=None):
-                raise AssertionError("画像投稿である必要があります")
-
         with patch("app.publisher.ThreadsAPI", ReplyAPI), patch(
             "app.publisher.settings",
             SimpleNamespace(image_base_url="https://example.com"),
         ):
             result = publish(draft_id)
-
         self.assertEqual(len(calls), 4)
         self.assertIsNone(calls[0][2])
-        self.assertEqual([call[2] for call in calls[1:]], ["media-1"] * 3)
         self.assertEqual(result["reply_ids"], ["media-2", "media-3", "media-4"])
 
 

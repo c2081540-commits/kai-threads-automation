@@ -71,12 +71,20 @@ def _fit_font(draw, text, max_width, start=68, minimum=30):
 
 def _title(draw, text):
     cleaned = text.replace("【3枚から選ぶ】", "").strip("。 ")
-    font = _fit_font(draw, cleaned, 920)
-    lines = _wrap_by_width(draw, cleaned, font, 920)
-    y = 82
+    if "。" in cleaned:
+        parts = [part.strip() for part in cleaned.split("。") if part.strip()]
+    else:
+        parts = []
+    if 1 < len(parts) <= 2:
+        lines = parts
+    else:
+        font_for_wrap = _font(62)
+        lines = _wrap_by_width(draw, cleaned, font_for_wrap, 920)
+    y = 58
     for line in lines[:2]:
+        font = _fit_font(draw, line, 920, start=62, minimum=42)
         _center_text(draw, line, y, font)
-        y += font.size + 18
+        y += font.size + 10
     return y
 
 
@@ -152,42 +160,78 @@ def _render_choice(draft_id, title, cards):
     return str(out)
 
 
-def _render_result(draft_id, label, card):
+def _draw_paragraph(draw, text, x, y, max_width, font, fill=CREAM, line_gap=16):
+    for paragraph in str(text).splitlines():
+        if not paragraph:
+            y += font.size // 2
+            continue
+        for line in _wrap_by_width(draw, paragraph, font, max_width):
+            draw.text((x, y), line, font=font, fill=fill)
+            y += font.size + line_gap
+    return y
+
+
+def _render_result(draft_id, label, card, result_text):
     image, draw = _canvas()
     _center_text(draw, f"{label}を選んだあなたへ", 70, _font(56), CREAM)
-    _paste_card(image, draw, card, (72, 205), (365, 548))
-
-    draw.text((500, 225), card["name_ja"], font=_font(62), fill=GOLD)
-    keyword_text = "・".join(card["keywords"])
-    y = 320
-    for line in _wrap_by_width(draw, keyword_text, _font(32), 500):
-        draw.text((500, y), line, font=_font(32), fill=MUTED)
-        y += 46
-
-    y = 470
-    body_font = _font(40)
-    for line in _wrap_by_width(draw, card["love"], body_font, 500):
-        draw.text((500, y), line, font=body_font, fill=CREAM)
-        y += 60
-
-    draw.line((75, 850, 1005, 850), fill="#5D4A25", width=2)
-    _center_text(draw, "焦って結論を出さず、今日できる一歩を選ぶ", 930, _font(38), CREAM)
+    _paste_card(image, draw, card, (70, 205), (320, 480))
+    draw.text((450, 215), card["name_ja"], font=_font(52), fill=GOLD)
+    prefix = f"{label}を選んだあなたへ｜{card['name_ja']}"
+    clean = str(result_text).replace(prefix, "").strip()
+    _draw_paragraph(draw, clean, 450, 305, 555, _font(34), CREAM, 12)
+    draw.line((75, 1040, 1005, 1040), fill="#5D4A25", width=2)
+    _center_text(
+        draw,
+        "占いをヒントに、現実の状況も一緒に見てください",
+        1090,
+        _font(30),
+        MUTED,
+    )
     _center_text(draw, "Kai 復縁タロット", 1235, _font(28), GOLD)
     out = Path("generated") / f"post-{draft_id:05d}-result-{label}.png"
     image.save(out, "PNG", optimize=True)
     return str(out)
 
 
-def _render_single(draft_id, fmt, title, card, event=None):
+def _render_template(draft_id, title, image_spec):
     image, draw = _canvas()
-    _title(draw, title)
-    _paste_card(image, draw, card, (358, 360), (365, 548))
-
-    if fmt == "event_countdown" and event:
-        badge = "TODAY" if event["days_left"] == 0 else f"あと {event['days_left']} 日"
-        _center_text(draw, badge, 980, _font(58), GOLD)
+    title_bottom = _title(draw, title)
+    spec = image_spec or {}
+    kind = spec.get("kind", "text_card")
+    eyebrow = str(spec.get("eyebrow", "")).strip()
+    if eyebrow:
+        _center_text(draw, eyebrow, title_bottom + 25, _font(30), GOLD)
+    y = max(300, title_bottom + 100)
+    items = spec.get("items", [])
+    if kind in {"checklist", "comparison"} and items:
+        count = min(len(items), 6)
+        item_height = 210 if count <= 3 else (165 if count == 4 else 132)
+        gap = 28 if count <= 4 else 18
+        item_font = _font(44 if count <= 3 else (38 if count == 4 else 32))
+        for index, item in enumerate(items[:6], 1):
+            draw.rounded_rectangle(
+                (80, y, 1000, y + item_height),
+                radius=18,
+                fill="#10242B",
+                outline="#5D4A25",
+                width=2,
+            )
+            number_y = y + (item_height - 50) // 2
+            draw.text((112, number_y), str(index), font=_font(44), fill=GOLD)
+            text_y = y + (item_height - item_font.size) // 2
+            _draw_paragraph(draw, item, 190, text_y, 760, item_font, CREAM, 8)
+            y += item_height + gap
     else:
-        _center_text(draw, card["name_ja"], 980, _font(58), GOLD)
+        text = str(spec.get("text", "")).strip()
+        draw.rounded_rectangle(
+            (70, y, 1010, 1080),
+            radius=24,
+            fill="#10242B",
+            outline="#5D4A25",
+            width=2,
+        )
+        font = _font(52 if len(text) < 80 else 40)
+        _draw_paragraph(draw, text, 115, y + 60, 850, font, CREAM, 18)
     _center_text(draw, "Kai 復縁タロット", 1235, _font(28), GOLD)
 
     out = Path("generated") / f"post-{draft_id:05d}.png"
@@ -196,13 +240,18 @@ def _render_single(draft_id, fmt, title, card, event=None):
     return str(out)
 
 
-def render_post_image(draft_id, fmt, title, cards=None, event=None):
+def render_post_image(
+    draft_id, fmt, title, cards=None, event=None, image_spec=None, replies=None
+):
     cards = cards or []
-    if not cards:
-        raise ValueError("画像生成に使うカードが指定されていません")
     if fmt == "three_choice":
+        if len(cards) != 3:
+            raise ValueError("3択画像には異なるカードが3枚必要です")
         main = _render_choice(draft_id, title, cards[:3])
+        reply_map = {item["label"]: item["text"] for item in (replies or [])}
         for label, card in zip("ABC", cards[:3]):
-            _render_result(draft_id, label, card)
+            _render_result(draft_id, label, card, reply_map.get(label, ""))
         return main
-    return _render_single(draft_id, fmt, title, cards[0], event)
+    if (image_spec or {}).get("kind", "none") == "none":
+        return None
+    return _render_template(draft_id, title, image_spec)

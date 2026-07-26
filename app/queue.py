@@ -14,11 +14,17 @@ from .settings import settings
 SLOTS = {"morning": "07:00", "noon": "12:00", "evening": "20:00"}
 FORMATS = {
     "three_choice",
-    "daily_tarot",
     "relationship_tip",
     "question",
+    "poll",
+    "checklist",
+    "message_example",
+    "psychology",
+    "empathy",
+    "short_advice",
     "event_countdown",
     "event_today",
+    "story",
 }
 CARD_BY_ID = {int(card["id"]): card for card in CARDS}
 
@@ -62,8 +68,16 @@ def _validate(item):
             raise ValueError("3択投稿にはA・B・Cの返信が3件必要です")
         if [reply.get("label") for reply in replies] != list("ABC"):
             raise ValueError("3択返信の順番はA・B・Cである必要があります")
-    elif len(card_ids) < 1:
-        raise ValueError("画像投稿にはカードIDが1枚以上必要です")
+    elif card_ids:
+        raise ValueError("3択以外の投稿にカードを付けないでください")
+    image = item.get("image", {"kind": "none"})
+    if not isinstance(image, dict):
+        raise ValueError("imageはオブジェクトで指定してください")
+    if image.get("kind", "none") not in {
+        "none", "text_card", "checklist", "comparison", "message_example",
+        "tarot_choice"
+    }:
+        raise ValueError("不明な画像形式です")
     return quality, [CARD_BY_ID[value] for value in card_ids]
 
 
@@ -169,6 +183,8 @@ def prepare(slot, target_date=None):
             item["title"],
             cards,
             item.get("event"),
+            item.get("image"),
+            replies,
         )
     with connect() as con:
         con.execute(

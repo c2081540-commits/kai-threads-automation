@@ -189,6 +189,10 @@ def main():
     sub.add_parser("export")
     sub.add_parser("publish-latest")
     sub.add_parser("verify-auth")
+    validate_week_cmd = sub.add_parser("validate-week")
+    validate_week_cmd.add_argument("--path", default="data/weekly_package.json")
+    prepare_week_cmd = sub.add_parser("prepare-week")
+    prepare_week_cmd.add_argument("--path", default="data/weekly_package.json")
     preview_cmd = sub.add_parser("preview-slot")
     preview_cmd.add_argument("slot", choices=("morning", "noon", "evening"))
     preview_cmd.add_argument("--date")
@@ -222,6 +226,12 @@ def main():
         show(publish(rows[0]["id"]))
     elif args.cmd == "verify-auth":
         show(verify_auth())
+    elif args.cmd == "validate-week":
+        from .weekly import load_weekly, validate_weekly
+        show(validate_weekly(load_weekly(args.path)))
+    elif args.cmd == "prepare-week":
+        from .weekly import prepare_week
+        show(prepare_week(args.path))
     elif args.cmd == "preview-slot":
         show(preview_slot(args.slot, args.date))
     elif args.cmd == "prepare-slot":

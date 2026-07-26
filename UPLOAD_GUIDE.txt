@@ -1,35 +1,31 @@
-Kai Threads Automation：2026-07-27初回投稿パッケージ
+今回アップロードするもの
 
-このフォルダの中身はGitHubリポジトリのルートを基準に配置されています。
+GitHubリポジトリ kai-threads-automation の Code 画面で
+「Add file」→「Upload files」を開き、このZIPを展開して出てきた
+フォルダとファイルをまとめてドラッグしてください。
 
-更新するファイル:
+必ず「kai_threads_weekly_system_v1」という外側のフォルダではなく、
+その中身をアップロードします。
+
+上書きされるファイル:
 .github/workflows/threads-daily.yml
 app/cli.py
 app/image_maker.py
-app/publisher.py
 app/queue.py
-data/content_queue.json
+tests/test_system.py
 
-含まれる内容:
+新しく追加されるファイル:
+app/weekly.py
+data/weekly_package.json
+GPT_WEEKLY_OPERATOR.md
+WEEKLY_OPERATION.md
 
-1. 7月27日7時・12時・20時の投稿3本
-2. 表向きのカード3枚から選ぶ20時投稿
-3. A・B・Cそれぞれの結果返信
-4. 投稿前に画像だけ生成してGitHubへ保存するprepare機能
-5. Metaが公開画像を取得してから投稿するための順序修正
+アップロード後:
+1. Commit changes を押す
+2. Actions → Threads scheduled dispatch
+3. Run workflow
+4. 実行内容を validate_week にして実行
+5. 緑色のSuccessになったら、次は prepare_week で実行
 
-アップロード後も投稿は始まりません。
-AUTO_PUBLISHをtrueにするまではThreadsへのPOSTを行いません。
-
-アップロード後の確認:
-
-Actions → Threads scheduled dispatch → Run workflow
-
-実行内容: preview
-投稿枠: morning
-確認日: 2026-07-27
-
-同様にnoon、eveningを確認します。
-
-次に実行内容をprepareへ変更し、morning、noon、eveningを実行します。
-prepareは画像生成とGitHub保存だけを行い、Threadsへは投稿しません。
+validate_week と prepare_week はThreadsへ投稿しません。
+Threads API要求も0回です。
