@@ -11,9 +11,8 @@ on:
         options:
           - verify
           - validate_week
-          - prepare_week
+          - install_week
           - preview
-          - prepare
           - dispatch
       slot:
         description: "投稿枠"
@@ -102,8 +101,8 @@ jobs:
           CONTENT_QUEUE_PATH: data/content_queue.json
         run: python -m app.cli validate-week
 
-      - name: Prepare full week without API
-        if: ${{ steps.route.outputs.operation == 'prepare_week' }}
+      - name: Install GPT-completed week without API
+        if: ${{ steps.route.outputs.operation == 'install_week' }}
         env:
           DATABASE_PATH: data/tarot_growth.db
           CONTENT_QUEUE_PATH: data/content_queue.json
@@ -118,18 +117,6 @@ jobs:
             python -m app.cli preview-slot "${{ steps.route.outputs.slot }}" --date "${{ steps.route.outputs.target_date }}"
           else
             python -m app.cli preview-slot "${{ steps.route.outputs.slot }}"
-          fi
-
-      - name: Prepare images without posting
-        if: ${{ steps.route.outputs.operation == 'prepare' }}
-        env:
-          DATABASE_PATH: data/tarot_growth.db
-          CONTENT_QUEUE_PATH: data/content_queue.json
-        run: |
-          if [ -n "${{ steps.route.outputs.target_date }}" ]; then
-            python -m app.cli prepare-slot "${{ steps.route.outputs.slot }}" --date "${{ steps.route.outputs.target_date }}"
-          else
-            python -m app.cli prepare-slot "${{ steps.route.outputs.slot }}"
           fi
 
       - name: Dispatch scheduled content
@@ -160,12 +147,12 @@ jobs:
           python -m app.cli analyze
           python -m app.cli export
 
-      - name: Save generated images and results
-        if: ${{ steps.route.outputs.operation == 'prepare_week' || steps.route.outputs.operation == 'prepare' || steps.route.outputs.operation == 'dispatch' }}
+      - name: Save queue and results
+        if: ${{ steps.route.outputs.operation == 'install_week' || steps.route.outputs.operation == 'dispatch' }}
         run: |
           git config user.name "threads-growth-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add generated/ reports/ data/content_queue.json data/tarot_growth.db data/post_history.csv data/analysis_report.md
+          git add reports/ data/content_queue.json data/tarot_growth.db data/post_history.csv data/analysis_report.md
           if ! git diff --cached --quiet; then
             git commit -m "data: record scheduled Threads run"
             git push
