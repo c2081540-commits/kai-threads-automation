@@ -135,7 +135,7 @@ def _render_choice(draft_id, title, cards):
     label_font = _font(58)
     for index, (label, card) in enumerate(zip("ABC", cards)):
         x = start_x + index * (card_w + gap)
-        _paste_card(image, draw, card, (x, top), (card_w, card_h), darken=True)
+        _paste_card(image, draw, card, (x, top), (card_w, card_h), darken=False)
         box = draw.textbbox((0, 0), label, font=label_font)
         draw.text(
             (x + (card_w - (box[2] - box[0])) / 2, top + card_h + 36),

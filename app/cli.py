@@ -120,6 +120,29 @@ def preview_slot(slot, target_date=None):
     return preview(slot, target_date)
 
 
+def prepare_slot(slot, target_date=None):
+    from .queue import prepare
+
+    row = prepare(slot, target_date)
+    if not row:
+        return {
+            "status": "no_content",
+            "slot": slot,
+            "date": target_date,
+            "api_requested": False,
+        }
+    return {
+        "status": "prepared",
+        "draft_id": row["id"],
+        "source_key": row["source_key"],
+        "slot": row["slot"],
+        "scheduled_at": row["scheduled_at"],
+        "image_path": row["image_path"],
+        "api_requested": False,
+        "posting_requests": 0,
+    }
+
+
 def dispatch(slot, target_date=None):
     from .publisher import publish
     from .queue import prepare, preview
@@ -169,6 +192,9 @@ def main():
     preview_cmd = sub.add_parser("preview-slot")
     preview_cmd.add_argument("slot", choices=("morning", "noon", "evening"))
     preview_cmd.add_argument("--date")
+    prepare_cmd = sub.add_parser("prepare-slot")
+    prepare_cmd.add_argument("slot", choices=("morning", "noon", "evening"))
+    prepare_cmd.add_argument("--date")
     dispatch_cmd = sub.add_parser("dispatch")
     dispatch_cmd.add_argument("slot", choices=("morning", "noon", "evening"))
     dispatch_cmd.add_argument("--date")
@@ -198,6 +224,8 @@ def main():
         show(verify_auth())
     elif args.cmd == "preview-slot":
         show(preview_slot(args.slot, args.date))
+    elif args.cmd == "prepare-slot":
+        show(prepare_slot(args.slot, args.date))
     elif args.cmd == "dispatch":
         show(dispatch(args.slot, args.date))
     elif args.cmd == "analyze":

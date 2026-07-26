@@ -102,6 +102,7 @@ def preview(slot, target_date=None):
         "topic": item["topic"],
         "title": item["title"],
         "body": item["body"],
+        "image_path": item.get("image_path"),
         "cards": [card["name_ja"] for card in cards],
         "replies": item.get("replies", []),
         "quality": quality,
@@ -148,13 +149,27 @@ def prepare(slot, target_date=None):
             ),
         )
         draft_id = cur.lastrowid
-    image_path = render_post_image(
-        draft_id,
-        item["format"],
-        item["title"],
-        cards,
-        item.get("event"),
-    )
+    image_path = item.get("image_path")
+    if image_path:
+        if not Path(image_path).is_file():
+            raise FileNotFoundError(
+                f"事前生成画像がGitHub上にありません: {image_path}"
+            )
+        if item["format"] == "three_choice":
+            for reply in replies:
+                reply_image = reply.get("image_path")
+                if not reply_image or not Path(reply_image).is_file():
+                    raise FileNotFoundError(
+                        f"3択結果画像がGitHub上にありません: {reply_image}"
+                    )
+    else:
+        image_path = render_post_image(
+            draft_id,
+            item["format"],
+            item["title"],
+            cards,
+            item.get("event"),
+        )
     with connect() as con:
         con.execute(
             "UPDATE drafts SET image_path=? WHERE id=?", (image_path, draft_id)
