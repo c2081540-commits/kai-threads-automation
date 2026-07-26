@@ -25,7 +25,6 @@
     "cta_type": "save",
     "image": {
       "kind": "checklist",
-      "eyebrow": "連絡する前に",
       "items": [
         "返信を催促していない",
         "質問を詰め込んでいない",
