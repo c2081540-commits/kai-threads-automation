@@ -171,6 +171,20 @@ def _draw_paragraph(draw, text, x, y, max_width, font, fill=CREAM, line_gap=16):
     return y
 
 
+def _repeats_title(title, eyebrow):
+    title = "".join(str(title).split())
+    eyebrow = "".join(str(eyebrow).split())
+    if not title or not eyebrow:
+        return False
+    if title in eyebrow or eyebrow in title:
+        return True
+    title_pairs = {title[index:index + 2] for index in range(len(title) - 1)}
+    eyebrow_pairs = {
+        eyebrow[index:index + 2] for index in range(len(eyebrow) - 1)
+    }
+    return bool(title_pairs & eyebrow_pairs)
+
+
 def _render_result(draft_id, label, card, result_text):
     image, draw = _canvas()
     _center_text(draw, f"{label}を選んだあなたへ", 70, _font(56), CREAM)
@@ -178,12 +192,25 @@ def _render_result(draft_id, label, card, result_text):
     draw.text((450, 215), card["name_ja"], font=_font(52), fill=GOLD)
     prefix = f"{label}を選んだあなたへ｜{card['name_ja']}"
     clean = str(result_text).replace(prefix, "").strip()
-    _draw_paragraph(draw, clean, 450, 305, 555, _font(34), CREAM, 12)
-    draw.line((75, 1040, 1005, 1040), fill="#5D4A25", width=2)
+    if "次の行動：" in clean:
+        reading, action = clean.split("次の行動：", 1)
+    else:
+        reading, action = clean, ""
+    _draw_paragraph(draw, reading.strip(), 450, 305, 555, _font(34), CREAM, 12)
+    draw.rounded_rectangle(
+        (70, 755, 1010, 1045),
+        radius=24,
+        fill="#10242B",
+        outline="#5D4A25",
+        width=2,
+    )
+    draw.text((110, 790), "次の行動", font=_font(38), fill=GOLD)
+    _draw_paragraph(draw, action.strip(), 110, 860, 860, _font(38), CREAM, 14)
+    draw.line((75, 1100, 1005, 1100), fill="#5D4A25", width=2)
     _center_text(
         draw,
         "占いをヒントに、現実の状況も一緒に見てください",
-        1090,
+        1135,
         _font(30),
         MUTED,
     )
@@ -199,7 +226,7 @@ def _render_template(draft_id, title, image_spec):
     spec = image_spec or {}
     kind = spec.get("kind", "text_card")
     eyebrow = str(spec.get("eyebrow", "")).strip()
-    if eyebrow:
+    if eyebrow and not _repeats_title(title, eyebrow):
         _center_text(draw, eyebrow, title_bottom + 25, _font(30), GOLD)
     y = max(300, title_bottom + 100)
     items = spec.get("items", [])

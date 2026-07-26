@@ -4,6 +4,8 @@ from datetime import date, datetime, timedelta
 from difflib import SequenceMatcher
 from pathlib import Path
 
+from .db import connect
+from .image_maker import render_post_image
 from .queue import FORMATS, SLOTS, _validate, prepare
 from .settings import settings
 
@@ -159,10 +161,29 @@ def prepare_week(path=WEEKLY_PATH):
         key=lambda row: (row["date"], SLOT_ORDER[row["slot"]]),
     ):
         row = prepare(item["slot"], item["date"])
+        quality, cards = _validate(item)
+        image_path = render_post_image(
+            row["id"],
+            item["format"],
+            item["title"],
+            cards,
+            item.get("event"),
+            item.get("image"),
+            item.get("replies", []),
+        )
+        with connect() as con:
+            con.execute(
+                "UPDATE drafts SET image_path=?,quality_json=? WHERE id=?",
+                (
+                    image_path,
+                    json.dumps(quality, ensure_ascii=False),
+                    row["id"],
+                ),
+            )
         results.append({
             "key": item["key"],
             "draft_id": row["id"],
-            "image_path": row["image_path"],
+            "image_path": image_path,
         })
     latest = Path("reports/latest")
     latest.mkdir(parents=True, exist_ok=True)

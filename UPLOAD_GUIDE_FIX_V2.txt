@@ -1,0 +1,28 @@
+画像テンプレート修正版 v2
+
+修正内容
+
+1. タイトルと補助見出しが同じ意味なら、補助見出しを表示しません。
+2. post-00008 の「連絡する前に」を削除しました。
+3. 3択結果画像の下段を「次の行動」欄として使い、大きな空白をなくしました。
+4. prepare_week 実行時、作成済みの画像も最新テンプレートで上書きします。
+5. Threads APIへの投稿処理は行いません。
+
+アップロード手順
+
+1. このZIPをMac上で展開します。
+2. GitHubの kai-threads-automation を開きます。
+3. Code → Add file → Upload files を開きます。
+4. 展開してできたフォルダの中身を、まとめてアップロード欄へ入れます。
+   kai_threads_image_fix_v2 という外側のフォルダ自体は入れません。
+5. Commit changes を押します。
+6. Actions → Threads scheduled dispatch → Run workflow を開きます。
+7. 実行内容で prepare_week を選び、Run workflow を押します。
+8. 完了後、Code → generated で次を確認します。
+   post-00008.png
+   post-00009-result-A.png
+
+注意
+
+AUTO_PUBLISH はまだ true にしないでください。
+画像確認が終わるまで自動投稿は有効にしません。
