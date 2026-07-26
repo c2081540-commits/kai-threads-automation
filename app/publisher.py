@@ -51,11 +51,6 @@ def publish(draft_id):
             label = reply.get("label")
             reply_image_path = (
                 reply.get("image_path")
-                or (
-                    f"generated/post-{draft_id:05d}-result-{label}.png"
-                    if row["format"] == "three_choice" and label in "ABC"
-                    else None
-                )
             )
             reply_image_url = (
                 settings.image_base_url.rstrip("/")

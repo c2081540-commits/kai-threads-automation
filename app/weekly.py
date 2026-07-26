@@ -4,8 +4,6 @@ from datetime import date, datetime, timedelta
 from difflib import SequenceMatcher
 from pathlib import Path
 
-from .db import connect
-from .image_maker import render_post_image
 from .queue import FORMATS, SLOTS, _validate, prepare
 from .settings import settings
 
@@ -53,6 +51,18 @@ def validate_weekly(package):
                 raise ValueError("本文が酷似する投稿があります")
     for item in posts:
         _validate(item)
+        image_path = item.get("image_path")
+        if image_path and not Path(image_path).is_file():
+            raise FileNotFoundError(f"完成画像がありません: {image_path}")
+        if item["format"] == "three_choice":
+            if not image_path:
+                raise ValueError("3択投稿には完成済みの選択画像が必要です")
+            for reply in item.get("replies", []):
+                reply_image = reply.get("image_path")
+                if not reply_image or not Path(reply_image).is_file():
+                    raise FileNotFoundError(
+                        f"完成済みの3択結果画像がありません: {reply_image}"
+                    )
     if sum(item["format"] == "three_choice" for item in posts) != 7:
         raise ValueError("3択投稿は週7件必要です")
     if len({item["format"] for item in posts}) < 6:
@@ -161,29 +171,10 @@ def prepare_week(path=WEEKLY_PATH):
         key=lambda row: (row["date"], SLOT_ORDER[row["slot"]]),
     ):
         row = prepare(item["slot"], item["date"])
-        quality, cards = _validate(item)
-        image_path = render_post_image(
-            row["id"],
-            item["format"],
-            item["title"],
-            cards,
-            item.get("event"),
-            item.get("image"),
-            item.get("replies", []),
-        )
-        with connect() as con:
-            con.execute(
-                "UPDATE drafts SET image_path=?,quality_json=? WHERE id=?",
-                (
-                    image_path,
-                    json.dumps(quality, ensure_ascii=False),
-                    row["id"],
-                ),
-            )
         results.append({
             "key": item["key"],
             "draft_id": row["id"],
-            "image_path": image_path,
+            "image_path": row["image_path"],
         })
     latest = Path("reports/latest")
     latest.mkdir(parents=True, exist_ok=True)

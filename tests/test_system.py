@@ -143,9 +143,18 @@ class SystemTest(unittest.TestCase):
                     "reply-chain-weekly-test", "generated/post-99999.png",
                     "pending", jdump({"passed": True}),
                     jdump([
-                        {"label": "A", "text": "Aの結果"},
-                        {"label": "B", "text": "Bの結果"},
-                        {"label": "C", "text": "Cの結果"},
+                        {
+                            "label": "A", "text": "Aの結果",
+                            "image_path": "generated/post-99999-result-A.png",
+                        },
+                        {
+                            "label": "B", "text": "Bの結果",
+                            "image_path": "generated/post-99999-result-B.png",
+                        },
+                        {
+                            "label": "C", "text": "Cの結果",
+                            "image_path": "generated/post-99999-result-C.png",
+                        },
                     ]),
                 ),
             )

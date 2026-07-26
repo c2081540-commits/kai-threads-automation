@@ -1,0 +1,46 @@
+GPT制作・GitHub投稿専用化 修正版
+
+この修正後の役割
+
+GPT側
+- 市場調査
+- 過去投稿の分析
+- 翌週21投稿の選定
+- 投稿本文の作成と修正
+- 画像の作成と修正
+- tarot_cards内の既存アルカナを使った3択画像の作成
+- A・B・C結果画像の作成
+- GitHub投入用ZIPの出力
+
+GitHub側
+- 完成原稿と完成画像の検査
+- 投稿待ちデータへの登録
+- 07:00、12:00、20:00の投稿
+- 投稿結果の保存
+
+変更点
+
+- GitHub側の画像自動生成を停止
+- 画像が欠けた場合は勝手に代用品を作らず停止
+- 3択は選択画像1枚と結果画像3枚が揃っていないと登録不可
+- Threads投稿失敗時の自動再送なし
+- install_weekではThreads APIを呼ばない
+
+アップロード
+
+1. ZIPを展開する
+2. GitHubのkai-threads-automationを開く
+3. Code → Add file → Upload files
+4. 展開したkai_threads_gpt_production_fixフォルダの中身を入れる
+5. Commit changes
+
+登録テスト
+
+1. Actions → Threads scheduled dispatch
+2. Run workflow
+3. 実行内容でinstall_weekを選ぶ
+4. Run workflow
+5. Successを確認する
+
+この段階ではThreadsへ投稿されません。
+AUTO_PUBLISHは投稿内容の承認後にtrueへ変更します。

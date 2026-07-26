@@ -5,7 +5,6 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from .db import connect, jdump, log_event
-from .image_maker import render_post_image
 from .planner import CARDS
 from .safety import check
 from .settings import settings
@@ -163,29 +162,21 @@ def prepare(slot, target_date=None):
             ),
         )
         draft_id = cur.lastrowid
+    # 画像と原稿はGPT側で完成させる。GitHub側では生成・補完しない。
     image_path = item.get("image_path")
-    if image_path:
-        if not Path(image_path).is_file():
-            raise FileNotFoundError(
-                f"事前生成画像がGitHub上にありません: {image_path}"
-            )
-        if item["format"] == "three_choice":
-            for reply in replies:
-                reply_image = reply.get("image_path")
-                if not reply_image or not Path(reply_image).is_file():
-                    raise FileNotFoundError(
-                        f"3択結果画像がGitHub上にありません: {reply_image}"
-                    )
-    else:
-        image_path = render_post_image(
-            draft_id,
-            item["format"],
-            item["title"],
-            cards,
-            item.get("event"),
-            item.get("image"),
-            replies,
+    if image_path and not Path(image_path).is_file():
+        raise FileNotFoundError(
+            f"GPTが作成した投稿画像がGitHub上にありません: {image_path}"
         )
+    if item["format"] == "three_choice":
+        if not image_path:
+            raise ValueError("3択投稿にはGPTが作成した選択画像が必要です")
+        for reply in replies:
+            reply_image = reply.get("image_path")
+            if not reply_image or not Path(reply_image).is_file():
+                raise FileNotFoundError(
+                    f"GPTが作成した3択結果画像がGitHub上にありません: {reply_image}"
+                )
     with connect() as con:
         con.execute(
             "UPDATE drafts SET image_path=? WHERE id=?", (image_path, draft_id)
