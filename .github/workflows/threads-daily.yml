@@ -28,9 +28,9 @@ on:
         required: false
         type: string
   schedule:
-    # 15分ごとに当日分の未投稿枠を確認する。
-    # GitHubが1回のscheduleを落としても、次回実行で古い枠から1件だけ回収する。
-    - cron: "7,22,37,52 * * * *"
+    # 一時テスト: 2026-07-27の朝枠1件だけを16:07/16:17/16:27 JSTに試す。
+    # 日付ガードにより翌日以降は投稿処理を行わない。
+    - cron: "7,17,27 7 * * *"
 
 permissions:
   contents: write
@@ -67,12 +67,18 @@ jobs:
           MANUAL_OPERATION: ${{ inputs.operation }}
           MANUAL_SLOT: ${{ inputs.slot }}
           MANUAL_DATE: ${{ inputs.target_date }}
-          SCHEDULE_EXPRESSION: ${{ github.event.schedule }}
         run: |
           if [ "$EVENT_NAME" = "schedule" ]; then
-            operation="dispatch_due"
-            slot=""
-            target_date=""
+            jst_date="$(TZ=Asia/Tokyo date +%F)"
+            if [ "$jst_date" = "2026-07-27" ]; then
+              operation="dispatch"
+              slot="morning"
+              target_date="2026-07-27"
+            else
+              operation="noop"
+              slot=""
+              target_date=""
+            fi
           else
             operation="$MANUAL_OPERATION"
             slot="$MANUAL_SLOT"
@@ -115,7 +121,7 @@ jobs:
           fi
 
       - name: Dispatch scheduled content
-        if: ${{ steps.route.outputs.operation == 'dispatch' || steps.route.outputs.operation == 'dispatch_due' }}
+        if: ${{ steps.route.outputs.operation == 'dispatch' }}
         env:
           THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
           THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
@@ -125,9 +131,7 @@ jobs:
           CONTENT_QUEUE_PATH: data/content_queue.json
           IMAGE_BASE_URL: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}
         run: |
-          if [ "${{ steps.route.outputs.operation }}" = "dispatch_due" ]; then
-            python -m app.cli dispatch-due
-          elif [ -n "${{ steps.route.outputs.target_date }}" ]; then
+          if [ -n "${{ steps.route.outputs.target_date }}" ]; then
             python -m app.cli dispatch "${{ steps.route.outputs.slot }}" --date "${{ steps.route.outputs.target_date }}"
           else
             python -m app.cli dispatch "${{ steps.route.outputs.slot }}"
@@ -145,7 +149,7 @@ jobs:
           python -m app.cli export
 
       - name: Save queue and results
-        if: ${{ steps.route.outputs.operation == 'install_week' || steps.route.outputs.operation == 'dispatch' || steps.route.outputs.operation == 'dispatch_due' }}
+        if: ${{ steps.route.outputs.operation == 'install_week' || steps.route.outputs.operation == 'dispatch' }}
         run: |
           git config user.name "threads-growth-bot"
           git config user.email "actions@users.noreply.github.com"
