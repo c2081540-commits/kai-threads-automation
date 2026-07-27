@@ -177,6 +177,18 @@ def dispatch(slot, target_date=None):
     return {"status": "published", **publish(row["id"])}
 
 
+def dispatch_due():
+    from .queue import next_overdue
+
+    item = next_overdue()
+    if not item:
+        return {
+            "status": "nothing_due",
+            "api_requested": False,
+        }
+    return dispatch(item["slot"], item["date"])
+
+
 def main():
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -189,10 +201,6 @@ def main():
     sub.add_parser("export")
     sub.add_parser("publish-latest")
     sub.add_parser("verify-auth")
-    validate_week_cmd = sub.add_parser("validate-week")
-    validate_week_cmd.add_argument("--path", default="data/weekly_package.json")
-    prepare_week_cmd = sub.add_parser("prepare-week")
-    prepare_week_cmd.add_argument("--path", default="data/weekly_package.json")
     preview_cmd = sub.add_parser("preview-slot")
     preview_cmd.add_argument("slot", choices=("morning", "noon", "evening"))
     preview_cmd.add_argument("--date")
@@ -202,6 +210,7 @@ def main():
     dispatch_cmd = sub.add_parser("dispatch")
     dispatch_cmd.add_argument("slot", choices=("morning", "noon", "evening"))
     dispatch_cmd.add_argument("--date")
+    sub.add_parser("dispatch-due")
     publish_cmd = sub.add_parser("publish")
     publish_cmd.add_argument("draft_id", type=int)
     args = parser.parse_args()
@@ -226,18 +235,14 @@ def main():
         show(publish(rows[0]["id"]))
     elif args.cmd == "verify-auth":
         show(verify_auth())
-    elif args.cmd == "validate-week":
-        from .weekly import load_weekly, validate_weekly
-        show(validate_weekly(load_weekly(args.path)))
-    elif args.cmd == "prepare-week":
-        from .weekly import prepare_week
-        show(prepare_week(args.path))
     elif args.cmd == "preview-slot":
         show(preview_slot(args.slot, args.date))
     elif args.cmd == "prepare-slot":
         show(prepare_slot(args.slot, args.date))
     elif args.cmd == "dispatch":
         show(dispatch(args.slot, args.date))
+    elif args.cmd == "dispatch-due":
+        show(dispatch_due())
     elif args.cmd == "analyze":
         from .analytics import analyze
         show(analyze())

@@ -3,9 +3,11 @@ import os
 import shutil
 import tempfile
 import unittest
+from datetime import datetime
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 
 TEST_ROOT = tempfile.mkdtemp(prefix="kai-weekly-tests-")
@@ -17,7 +19,7 @@ os.environ["MIN_BODY_LENGTH"] = "20"
 
 from app.db import connect, init_db, jdump
 from app.publisher import publish
-from app.queue import _validate
+from app.queue import _validate, next_overdue
 from app.safety import check
 from app.weekly import load_weekly, validate_weekly
 
@@ -71,6 +73,60 @@ class SystemTest(unittest.TestCase):
         }
         with self.assertRaises(ValueError):
             _validate(item)
+
+    def test_next_overdue_skips_published_and_returns_oldest_unpublished(self):
+        queue_path = Path(os.environ["CONTENT_QUEUE_PATH"])
+        queue_path.parent.mkdir(parents=True, exist_ok=True)
+        queue_path.write_text(json.dumps([
+            {
+                "key": "2030-01-02-morning",
+                "date": "2030-01-02",
+                "slot": "morning",
+                "status": "ready",
+            },
+            {
+                "key": "2030-01-02-noon",
+                "date": "2030-01-02",
+                "slot": "noon",
+                "status": "ready",
+            },
+            {
+                "key": "2030-01-02-evening",
+                "date": "2030-01-02",
+                "slot": "evening",
+                "status": "ready",
+            },
+        ]), encoding="utf-8")
+        with connect() as con:
+            con.execute(
+                """INSERT INTO drafts(
+                   format,topic,hook_type,cta_type,cards_json,body,body_hash,
+                   status,quality_json,source_key
+                   ) VALUES(?,?,?,?,?,?,?,?,?,?)""",
+                (
+                    "empathy", "復縁", "朝", "none", "[]", "朝の投稿本文",
+                    "overdue-published", "published", jdump({"passed": True}),
+                    "2030-01-02-morning",
+                ),
+            )
+        now = datetime(2030, 1, 2, 13, 0, tzinfo=ZoneInfo("Asia/Tokyo"))
+        self.assertEqual(next_overdue(now)["key"], "2030-01-02-noon")
+
+    def test_next_overdue_does_not_publish_future_slot(self):
+        now = datetime(2030, 1, 1, 13, 0, tzinfo=ZoneInfo("Asia/Tokyo"))
+        with connect() as con:
+            con.execute(
+                """INSERT INTO drafts(
+                   format,topic,hook_type,cta_type,cards_json,body,body_hash,
+                   status,quality_json,source_key
+                   ) VALUES(?,?,?,?,?,?,?,?,?,?)""",
+                (
+                    "empathy", "復縁", "昼", "none", "[]", "昼の投稿本文",
+                    "overdue-noon-published", "published", jdump({"passed": True}),
+                    "2030-01-01-noon",
+                ),
+            )
+        self.assertIsNone(next_overdue(now))
 
     def test_failed_publish_is_not_automatically_retried(self):
         with connect() as con:

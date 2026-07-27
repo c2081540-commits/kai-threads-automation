@@ -96,6 +96,40 @@ def due(slot, target_date=None):
     return matches[0] if matches else None
 
 
+def next_overdue(now=None):
+    """Return the oldest due item for today that has not finished publishing."""
+    current = now or _now()
+    date_text = current.date().isoformat()
+    candidates = []
+    for item in _load():
+        slot = item.get("slot")
+        if (
+            item.get("date") != date_text
+            or slot not in SLOTS
+            or item.get("status", "draft") != "ready"
+        ):
+            continue
+        scheduled = datetime.fromisoformat(
+            f"{date_text}T{SLOTS[slot]}:00"
+        ).replace(tzinfo=current.tzinfo)
+        if scheduled <= current:
+            candidates.append((scheduled, item))
+
+    candidates.sort(key=lambda value: value[0])
+    with connect() as con:
+        for _, item in candidates:
+            existing = con.execute(
+                "SELECT status FROM drafts WHERE source_key=?", (str(item["key"]),)
+            ).fetchone()
+            if not existing or existing["status"] == "pending":
+                return item
+            if existing["status"] in {"publishing", "publish_failed"}:
+                raise RuntimeError(
+                    f"未確認の投稿試行があります: {item['key']} ({existing['status']})"
+                )
+    return None
+
+
 def preview(slot, target_date=None):
     item = due(slot, target_date)
     if not item:
