@@ -47,15 +47,11 @@ class ThreadsAPI:
             result = self._get(
                 creation_id,
                 {
-                    "fields": "status,status_code,error_message",
+                    "fields": "status,error_message",
                     "access_token": self.token,
                 },
             )
-            status = str(
-                result.get("status")
-                or result.get("status_code")
-                or ""
-            ).upper()
+            status = str(result.get("status") or "").upper()
             if status == "FINISHED":
                 return
             if status in {"ERROR", "EXPIRED"}:
