@@ -313,6 +313,51 @@ class SystemTest(unittest.TestCase):
         row = prepare("evening", "2030-01-01")
         self.assertTrue(os.path.isfile(row["image_path"]))
 
+    def test_existing_text_draft_drops_stale_image_path(self):
+        Path("data").mkdir(exist_ok=True)
+        queue = [
+            {
+                "key": "test-existing-text",
+                "date": "2030-01-02",
+                "slot": "morning",
+                "status": "ready",
+                "format": "short_advice",
+                "topic": "連絡",
+                "title": "朝の短い助言",
+                "body": "画像を使わない短文投稿では、古い画像参照を送信前に確実に削除します。",
+            }
+        ]
+        Path("data/content_queue.json").write_text(
+            __import__("json").dumps(queue, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        with connect() as con:
+            con.execute(
+                """INSERT INTO drafts(
+                   format,topic,hook_type,cta_type,cards_json,body,body_hash,
+                   image_path,status,quality_json,source_key,scheduled_at,slot
+                   ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (
+                    "short_advice",
+                    "古い内容",
+                    "古い題名",
+                    "none",
+                    "[]",
+                    queue[0]["body"],
+                    "old-hash",
+                    "generated/post-99999.png",
+                    "pending",
+                    jdump({"passed": True}),
+                    "test-existing-text",
+                    "2030-01-02T07:00:00+09:00",
+                    "morning",
+                ),
+            )
+
+        row = prepare("morning", "2030-01-02")
+        self.assertIsNone(row["image_path"])
+        self.assertEqual(row["hook_type"], "朝の短い助言")
+
     def test_three_choice_publishes_abc_as_direct_parent_replies(self):
         with connect() as con:
             cur = con.execute(

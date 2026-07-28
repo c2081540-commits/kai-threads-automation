@@ -126,7 +126,72 @@ def prepare(slot, target_date=None):
             "SELECT * FROM drafts WHERE source_key=?", (source_key,)
         ).fetchone()
     if existing:
-        return dict(existing)
+        existing = dict(existing)
+        if existing["status"] == "published":
+            return existing
+
+        # The queue is the source of truth for content that has not been
+        # published yet.  Old reset databases can contain stale image paths
+        # (for example an image on a text-only post), so reconcile the draft
+        # before dispatching it.
+        image_path = item.get("image_path")
+        if image_path:
+            if not Path(image_path).is_file():
+                raise FileNotFoundError(
+                    f"事前生成画像がGitHub上にありません: {image_path}"
+                )
+            if item["format"] == "three_choice":
+                for reply in item.get("replies", []):
+                    reply_image = reply.get("image_path")
+                    if not reply_image or not Path(reply_image).is_file():
+                        raise FileNotFoundError(
+                            f"3択結果画像がGitHub上にありません: {reply_image}"
+                        )
+        elif cards:
+            current_path = existing.get("image_path")
+            if current_path and Path(current_path).is_file():
+                image_path = current_path
+            else:
+                image_path = render_post_image(
+                    existing["id"],
+                    item["format"],
+                    item["title"],
+                    cards,
+                    item.get("event"),
+                    item.get("image_copy"),
+                )
+        else:
+            image_path = None
+
+        body_hash = hashlib.sha256(item["body"].encode("utf-8")).hexdigest()
+        scheduled_at = f"{item['date']}T{SLOTS[slot]}:00+09:00"
+        with connect() as con:
+            con.execute(
+                """UPDATE drafts SET
+                   format=?,topic=?,hook_type=?,cta_type=?,cards_json=?,
+                   body=?,body_hash=?,quality_json=?,scheduled_at=?,slot=?,
+                   replies_json=?,image_path=?
+                   WHERE id=?""",
+                (
+                    item["format"],
+                    item["topic"],
+                    item["title"],
+                    item.get("cta_type", "none"),
+                    jdump(cards),
+                    item["body"],
+                    body_hash,
+                    jdump(quality),
+                    scheduled_at,
+                    slot,
+                    jdump(item.get("replies", [])),
+                    image_path,
+                    existing["id"],
+                ),
+            )
+            row = con.execute(
+                "SELECT * FROM drafts WHERE id=?", (existing["id"],)
+            ).fetchone()
+        return dict(row)
 
     body_hash = hashlib.sha256(item["body"].encode("utf-8")).hexdigest()
     scheduled_at = f"{item['date']}T{SLOTS[slot]}:00+09:00"
