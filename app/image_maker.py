@@ -33,12 +33,6 @@ def _font(size):
 def _canvas(height):
     image = Image.new("RGB", (WIDTH, height), BG)
     draw = ImageDraw.Draw(image)
-    draw.rounded_rectangle(
-        (12, 12, WIDTH - 13, height - 13),
-        radius=14,
-        outline=GOLD,
-        width=4,
-    )
     return image, draw
 
 
@@ -109,7 +103,13 @@ def render_choice_image(path, cards):
         )
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    image.save(target, "PNG", optimize=True)
+    temporary = target.with_suffix(".tmp.png")
+    image.save(temporary, "PNG", optimize=True)
+    with Image.open(temporary) as check:
+        check.load()
+        if check.size != (WIDTH, CHOICE_HEIGHT):
+            raise RuntimeError(f"3択画像の寸法が不正です: {check.size}")
+    temporary.replace(target)
     return str(target)
 
 
@@ -125,7 +125,13 @@ def render_result_image(path, card):
     )
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    image.save(target, "PNG", optimize=True)
+    temporary = target.with_suffix(".tmp.png")
+    image.save(temporary, "PNG", optimize=True)
+    with Image.open(temporary) as check:
+        check.load()
+        if check.size != (WIDTH, RESULT_HEIGHT):
+            raise RuntimeError(f"結果画像の寸法が不正です: {check.size}")
+    temporary.replace(target)
     return str(target)
 
 
