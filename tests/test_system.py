@@ -185,6 +185,76 @@ class SystemTest(unittest.TestCase):
             ],
         )
 
+    def test_publish_retries_only_media_not_found_propagation_delay(self):
+        class Response:
+            def __init__(self, ok, status_code, body):
+                self.ok = ok
+                self.status_code = status_code
+                self._body = body
+                self.text = __import__("json").dumps(body)
+
+            def json(self):
+                return self._body
+
+        class Session:
+            def __init__(self):
+                self.calls = 0
+
+            def post(self, url, data, timeout):
+                self.calls += 1
+                if self.calls < 3:
+                    return Response(
+                        False,
+                        400,
+                        {
+                            "error": {
+                                "code": 24,
+                                "error_subcode": 4279009,
+                            }
+                        },
+                    )
+                return Response(True, 200, {"id": "published-123"})
+
+        api = ThreadsAPI.__new__(ThreadsAPI)
+        api.base = "https://graph.threads.net/v1.0"
+        api.user_id = "user-1"
+        api.token = "test-token"
+        api.session = Session()
+
+        with patch("time.sleep"):
+            result = api._publish_container(
+                "container-123", attempts=4, interval=0
+            )
+
+        self.assertEqual(result["id"], "published-123")
+        self.assertEqual(api.session.calls, 3)
+
+    def test_publish_does_not_retry_unknown_http_error(self):
+        class Response:
+            ok = False
+            status_code = 400
+            text = '{"error":{"code":10}}'
+
+            def json(self):
+                return {"error": {"code": 10}}
+
+        class Session:
+            calls = 0
+
+            def post(self, url, data, timeout):
+                self.calls += 1
+                return Response()
+
+        api = ThreadsAPI.__new__(ThreadsAPI)
+        api.base = "https://graph.threads.net/v1.0"
+        api.user_id = "user-1"
+        api.token = "test-token"
+        api.session = Session()
+
+        with self.assertRaisesRegex(RuntimeError, "HTTP 400"):
+            api._publish_container("container-123", attempts=4, interval=0)
+        self.assertEqual(api.session.calls, 1)
+
     def test_empty_gpt_queue_stops_without_api(self):
         Path("data").mkdir(exist_ok=True)
         Path("data/content_queue.json").write_text("[]", encoding="utf-8")

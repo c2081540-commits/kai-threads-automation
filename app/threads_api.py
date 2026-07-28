@@ -40,6 +40,52 @@ class ThreadsAPI:
             )
         return response.json()
 
+    def _publish_container(self, creation_id, attempts=4, interval=5):
+        """Publish one already-created container.
+
+        Threads can briefly return code 24/subcode 4279009 even after the
+        container reports FINISHED. Retry only that definite HTTP 400 response
+        with the same creation_id; never retry timeouts or unknown errors.
+        """
+        import time
+
+        path = f"{self.user_id}/threads_publish"
+        data = {
+            "access_token": self.token,
+            "creation_id": creation_id,
+        }
+        for attempt in range(attempts):
+            response = self.session.post(
+                f"{self.base}/{path}",
+                data=data,
+                timeout=(5, 25),
+            )
+            if response.ok:
+                return response.json()
+
+            try:
+                body = response.json()
+            except ValueError:
+                body = {}
+            error = body.get("error") or {}
+            media_not_ready = (
+                response.status_code == 400
+                and error.get("code") == 24
+                and error.get("error_subcode") == 4279009
+            )
+            if media_not_ready and attempt < attempts - 1:
+                time.sleep(interval * (attempt + 1))
+                continue
+
+            raise RuntimeError(
+                f"Threads API POST {path} failed: "
+                f"HTTP {response.status_code} body={response.text[:2000]}"
+            )
+
+        raise RuntimeError(
+            f"Threads media container {creation_id} could not be published"
+        )
+
     def _wait_until_ready(self, creation_id, attempts=20, interval=3):
         import time
 
@@ -94,10 +140,7 @@ class ThreadsAPI:
             f"{self.user_id}/threads",
             payload,
         )
-        published = self._post(
-            f"{self.user_id}/threads_publish",
-            {**common, "creation_id": container["id"]},
-        )
+        published = self._publish_container(container["id"])
         return published["id"]
 
     def publish_image(self, text, image_url, reply_to_id=None):
@@ -115,10 +158,7 @@ class ThreadsAPI:
             payload,
         )
         self._wait_until_ready(container["id"])
-        published = self._post(
-            f"{self.user_id}/threads_publish",
-            {**common, "creation_id": container["id"]},
-        )
+        published = self._publish_container(container["id"])
         return published["id"]
 
     def media(self, media_id):
