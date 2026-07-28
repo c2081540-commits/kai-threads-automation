@@ -10,9 +10,8 @@ on:
         type: choice
         options:
           - verify
-          - validate_week
-          - install_week
           - preview
+          - prepare
           - dispatch
       slot:
         description: "投稿枠"
@@ -27,7 +26,6 @@ on:
         description: "確認日（YYYY-MM-DD、省略時は日本時間の今日）"
         required: false
         type: string
-
 permissions:
   contents: write
 
@@ -79,19 +77,6 @@ jobs:
           THREADS_API_VERSION: ${{ vars.THREADS_API_VERSION || 'v1.0' }}
         run: python -m app.cli verify-auth
 
-      - name: Validate weekly package without API
-        if: ${{ steps.route.outputs.operation == 'validate_week' }}
-        env:
-          CONTENT_QUEUE_PATH: data/content_queue.json
-        run: python -m app.cli validate-week
-
-      - name: Install GPT-completed week without API
-        if: ${{ steps.route.outputs.operation == 'install_week' }}
-        env:
-          DATABASE_PATH: data/tarot_growth.db
-          CONTENT_QUEUE_PATH: data/content_queue.json
-        run: python -m app.cli prepare-week
-
       - name: Preview scheduled content
         if: ${{ steps.route.outputs.operation == 'preview' }}
         env:
@@ -103,8 +88,20 @@ jobs:
             python -m app.cli preview-slot "${{ steps.route.outputs.slot }}"
           fi
 
+      - name: Prepare images without posting
+        if: ${{ steps.route.outputs.operation == 'prepare' }}
+        env:
+          DATABASE_PATH: data/tarot_growth.db
+          CONTENT_QUEUE_PATH: data/content_queue.json
+        run: |
+          if [ -n "${{ steps.route.outputs.target_date }}" ]; then
+            python -m app.cli prepare-slot "${{ steps.route.outputs.slot }}" --date "${{ steps.route.outputs.target_date }}"
+          else
+            python -m app.cli prepare-slot "${{ steps.route.outputs.slot }}"
+          fi
+
       - name: Dispatch scheduled content
-        if: ${{ steps.route.outputs.operation == 'dispatch' || steps.route.outputs.operation == 'dispatch_due' }}
+        if: ${{ steps.route.outputs.operation == 'dispatch' }}
         env:
           THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
           THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
@@ -114,9 +111,7 @@ jobs:
           CONTENT_QUEUE_PATH: data/content_queue.json
           IMAGE_BASE_URL: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}
         run: |
-          if [ "${{ steps.route.outputs.operation }}" = "dispatch_due" ]; then
-            python -m app.cli dispatch-due
-          elif [ -n "${{ steps.route.outputs.target_date }}" ]; then
+          if [ -n "${{ steps.route.outputs.target_date }}" ]; then
             python -m app.cli dispatch "${{ steps.route.outputs.slot }}" --date "${{ steps.route.outputs.target_date }}"
           else
             python -m app.cli dispatch "${{ steps.route.outputs.slot }}"
@@ -133,12 +128,12 @@ jobs:
           python -m app.cli analyze
           python -m app.cli export
 
-      - name: Save queue and results
-        if: ${{ steps.route.outputs.operation == 'install_week' || steps.route.outputs.operation == 'dispatch' || steps.route.outputs.operation == 'dispatch_due' }}
+      - name: Save generated images and results
+        if: ${{ steps.route.outputs.operation == 'prepare' || steps.route.outputs.operation == 'dispatch' }}
         run: |
           git config user.name "threads-growth-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add reports/ data/content_queue.json data/tarot_growth.db data/post_history.csv data/analysis_report.md
+          git add generated/ data/tarot_growth.db data/post_history.csv data/analysis_report.md
           if ! git diff --cached --quiet; then
             git commit -m "data: record scheduled Threads run"
             git push
