@@ -211,7 +211,7 @@ class SystemTest(unittest.TestCase):
         row = prepare("evening", "2030-01-01")
         self.assertTrue(os.path.isfile(row["image_path"]))
 
-    def test_three_choice_publishes_parent_then_three_image_replies(self):
+    def test_three_choice_publishes_abc_as_direct_parent_replies(self):
         with connect() as con:
             cur = con.execute(
                 """INSERT INTO drafts(
@@ -225,7 +225,7 @@ class SystemTest(unittest.TestCase):
                     "コメント",
                     "[]",
                     "直感でA・B・Cから1枚選んでください。結果は返信欄へ。",
-                    "reply-chain-test",
+                    "direct-replies-test",
                     "generated/post-99999.png",
                     "pending",
                     jdump({"passed": True}),
@@ -258,7 +258,10 @@ class SystemTest(unittest.TestCase):
 
         self.assertEqual(len(calls), 4)
         self.assertIsNone(calls[0][2])
-        self.assertEqual([call[2] for call in calls[1:]], ["media-1"] * 3)
+        self.assertEqual(
+            [call[2] for call in calls[1:]],
+            ["media-1", "media-1", "media-1"],
+        )
         self.assertEqual(result["reply_ids"], ["media-2", "media-3", "media-4"])
 
 
