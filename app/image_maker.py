@@ -3,18 +3,20 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 
-WIDTH, HEIGHT = 1080, 1350
+WIDTH = 1080
+CHOICE_HEIGHT = 608
+RESULT_HEIGHT = 1350
 BG = "#071217"
 GOLD = "#D8B76A"
 CARD_DIR = Path(__file__).resolve().parents[1] / "tarot_cards"
 LABEL_FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf"
 
 
-def _canvas():
-    image = Image.new("RGB", (WIDTH, HEIGHT), BG)
+def _canvas(height):
+    image = Image.new("RGB", (WIDTH, height), BG)
     draw = ImageDraw.Draw(image)
     draw.rounded_rectangle(
-        (22, 22, WIDTH - 23, HEIGHT - 23),
+        (12, 12, WIDTH - 13, height - 13),
         radius=14,
         outline=GOLD,
         width=4,
@@ -51,11 +53,11 @@ def _paste_card(image, draw, card, xy, size):
 def render_choice_image(path, cards):
     if len(cards) != 3 or len({int(card["id"]) for card in cards}) != 3:
         raise ValueError("3択画像には異なるカードが3枚必要です")
-    image, draw = _canvas()
-    card_w, card_h = 310, 620
-    gap = 36
+    image, draw = _canvas(CHOICE_HEIGHT)
+    card_w, card_h = 341, 511
+    gap = 14
     start_x = (WIDTH - card_w * 3 - gap * 2) // 2
-    top = (HEIGHT - card_h) // 2
+    top = (CHOICE_HEIGHT - card_h) // 2
     for index, card in enumerate(cards):
         card_x = start_x + index * (card_w + gap)
         _paste_card(
@@ -65,16 +67,14 @@ def render_choice_image(path, cards):
             (card_x, top),
             (card_w, card_h),
         )
-        # Keep the choice marker on the card itself.  A dark badge preserves
-        # legibility without covering the central tarot illustration.
         label_x = card_x + card_w // 2
-        label_y = top + card_h - 58
+        label_y = top + 37
         draw.ellipse(
             (
-                label_x - 43,
-                label_y - 43,
-                label_x + 43,
-                label_y + 43,
+                label_x - 29,
+                label_y - 29,
+                label_x + 29,
+                label_y + 29,
             ),
             fill=BG,
             outline=GOLD,
@@ -83,7 +83,7 @@ def render_choice_image(path, cards):
         draw.text(
             (label_x, label_y - 2),
             "ABC"[index],
-            font=ImageFont.truetype(LABEL_FONT, 58),
+            font=ImageFont.truetype(LABEL_FONT, 51),
             fill=GOLD,
             anchor="mm",
         )
@@ -94,13 +94,13 @@ def render_choice_image(path, cards):
 
 
 def render_result_image(path, card):
-    image, draw = _canvas()
-    card_w, card_h = 620, 1040
+    image, draw = _canvas(RESULT_HEIGHT)
+    card_w, card_h = 620, 930
     _paste_card(
         image,
         draw,
         card,
-        ((WIDTH - card_w) // 2, (HEIGHT - card_h) // 2),
+        ((WIDTH - card_w) // 2, (RESULT_HEIGHT - card_h) // 2),
         (card_w, card_h),
     )
     target = Path(path)

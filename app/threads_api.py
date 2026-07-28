@@ -19,7 +19,11 @@ class ThreadsAPI:
             data=data,
             timeout=(5, 25),
         )
-        response.raise_for_status()
+        if not response.ok:
+            raise RuntimeError(
+                f"Threads API POST {path} failed: "
+                f"HTTP {response.status_code} body={response.text[:2000]}"
+            )
         return response.json()
 
     def _get(self, path, params):
@@ -29,8 +33,44 @@ class ThreadsAPI:
             params=params,
             timeout=(5, 20),
         )
-        response.raise_for_status()
+        if not response.ok:
+            raise RuntimeError(
+                f"Threads API GET {path} failed: "
+                f"HTTP {response.status_code} body={response.text[:2000]}"
+            )
         return response.json()
+
+    def _wait_until_ready(self, creation_id, attempts=12, interval=2):
+        import time
+
+        for attempt in range(attempts):
+            result = self._get(
+                creation_id,
+                {
+                    "fields": "status,status_code,error_message",
+                    "access_token": self.token,
+                },
+            )
+            status = str(
+                result.get("status")
+                or result.get("status_code")
+                or ""
+            ).upper()
+            if status == "FINISHED":
+                return
+            if status in {"ERROR", "EXPIRED"}:
+                raise RuntimeError(
+                    f"Threads image container {creation_id} failed: "
+                    f"status={status}, "
+                    f"error_message={result.get('error_message', '')}"
+                )
+            if attempt < attempts - 1:
+                time.sleep(interval)
+
+        raise RuntimeError(
+            f"Threads image container {creation_id} was not ready "
+            f"after {attempts * interval} seconds"
+        )
 
     def verify_identity(self):
         result = self._get(
@@ -78,6 +118,7 @@ class ThreadsAPI:
             f"{self.user_id}/threads",
             payload,
         )
+        self._wait_until_ready(container["id"])
         published = self._post(
             f"{self.user_id}/threads_publish",
             {**common, "creation_id": container["id"]},
