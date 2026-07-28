@@ -18,6 +18,7 @@ from app.planner import CARDS
 from app.safety import check
 from app.events import active_events
 from app.publisher import publish
+from app.threads_api import ThreadsAPI
 from app.db import jdump
 from app.queue import preview, prepare
 from datetime import date
@@ -142,6 +143,31 @@ class SystemTest(unittest.TestCase):
 
         self.assertEqual(SuccessfulAPI.calls, 1)
         self.assertEqual(result["id"], "media-123")
+
+    def test_image_wait_requests_only_supported_container_fields(self):
+        api = ThreadsAPI.__new__(ThreadsAPI)
+        api.token = "test-token"
+        requests = []
+
+        def fake_get(path, params):
+            requests.append((path, params))
+            return {"status": "FINISHED"}
+
+        api._get = fake_get
+        api._wait_until_ready("container-123", attempts=1, interval=0)
+
+        self.assertEqual(
+            requests,
+            [
+                (
+                    "container-123",
+                    {
+                        "fields": "status,error_message",
+                        "access_token": "test-token",
+                    },
+                )
+            ],
+        )
 
     def test_empty_gpt_queue_stops_without_api(self):
         Path("data").mkdir(exist_ok=True)
