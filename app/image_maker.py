@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -9,7 +10,24 @@ RESULT_HEIGHT = 1350
 BG = "#071217"
 GOLD = "#D8B76A"
 CARD_DIR = Path(__file__).resolve().parents[1] / "tarot_cards"
-LABEL_FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf"
+FONT_CANDIDATES = (
+    os.getenv("FONT_PATH", ""),
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
+    "/usr/share/fonts/truetype/noto/NotoSansJP-Bold.ttf",
+    "/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc",
+    "/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+)
+
+
+def _font(size):
+    for candidate in FONT_CANDIDATES:
+        if candidate and Path(candidate).is_file():
+            return ImageFont.truetype(candidate, size)
+    raise RuntimeError(
+        "表示用フォントがありません。GitHub Actionsではfonts-noto-cjkを"
+        "インストールするか、FONT_PATHを設定してください。"
+    )
 
 
 def _canvas(height):
@@ -57,7 +75,10 @@ def render_choice_image(path, cards):
     card_w, card_h = 341, 511
     gap = 14
     start_x = (WIDTH - card_w * 3 - gap * 2) // 2
-    top = (CHOICE_HEIGHT - card_h) // 2
+    # Keep labels outside the artwork so they never cover a card character.
+    top = 76
+    label_y = 41
+    label_radius = 22
     for index, card in enumerate(cards):
         card_x = start_x + index * (card_w + gap)
         _paste_card(
@@ -68,22 +89,21 @@ def render_choice_image(path, cards):
             (card_w, card_h),
         )
         label_x = card_x + card_w // 2
-        label_y = top + 37
         draw.ellipse(
             (
-                label_x - 29,
-                label_y - 29,
-                label_x + 29,
-                label_y + 29,
+                label_x - label_radius,
+                label_y - label_radius,
+                label_x + label_radius,
+                label_y + label_radius,
             ),
             fill=BG,
             outline=GOLD,
-            width=4,
+            width=3,
         )
         draw.text(
-            (label_x, label_y - 2),
+            (label_x, label_y - 1),
             "ABC"[index],
-            font=ImageFont.truetype(LABEL_FONT, 51),
+            font=_font(36),
             fill=GOLD,
             anchor="mm",
         )

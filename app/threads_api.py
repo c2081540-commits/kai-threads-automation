@@ -40,7 +40,7 @@ class ThreadsAPI:
             )
         return response.json()
 
-    def _wait_until_ready(self, creation_id, attempts=12, interval=2):
+    def _wait_until_ready(self, creation_id, attempts=20, interval=3):
         import time
 
         for attempt in range(attempts):
