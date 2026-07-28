@@ -128,9 +128,6 @@ def init_db():
             con.execute(
                 "ALTER TABLE posts ADD COLUMN reply_ids_json TEXT NOT NULL DEFAULT '[]'"
             )
-        con.execute(
-            "CREATE UNIQUE INDEX IF NOT EXISTS idx_posts_draft_id ON posts(draft_id)"
-        )
 
 
 def jdump(value):

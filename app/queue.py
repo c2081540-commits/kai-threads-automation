@@ -5,6 +5,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from .db import connect, jdump, log_event
+from .image_maker import render_post_image
 from .planner import CARDS
 from .safety import check
 from .settings import settings
@@ -13,16 +14,17 @@ from .settings import settings
 SLOTS = {"morning": "07:00", "noon": "12:00", "evening": "20:00"}
 FORMATS = {
     "three_choice",
+    "daily_tarot",
     "relationship_tip",
     "question",
-    "poll",
-    "checklist",
-    "message_example",
-    "psychology",
-    "empathy",
-    "short_advice",
     "event_countdown",
     "event_today",
+    "empathy",
+    "checklist",
+    "message_example",
+    "short_advice",
+    "psychology",
+    "poll",
     "story",
 }
 CARD_BY_ID = {int(card["id"]): card for card in CARDS}
@@ -67,16 +69,6 @@ def _validate(item):
             raise ValueError("3択投稿にはA・B・Cの返信が3件必要です")
         if [reply.get("label") for reply in replies] != list("ABC"):
             raise ValueError("3択返信の順番はA・B・Cである必要があります")
-    elif card_ids:
-        raise ValueError("3択以外の投稿にカードを付けないでください")
-    image = item.get("image", {"kind": "none"})
-    if not isinstance(image, dict):
-        raise ValueError("imageはオブジェクトで指定してください")
-    if image.get("kind", "none") not in {
-        "none", "text_card", "checklist", "comparison", "message_example",
-        "tarot_choice"
-    }:
-        raise ValueError("不明な画像形式です")
     return quality, [CARD_BY_ID[value] for value in card_ids]
 
 
@@ -94,40 +86,6 @@ def due(slot, target_date=None):
     if len(matches) > 1:
         raise RuntimeError(f"{date_text} {slot}に複数の予約投稿があります")
     return matches[0] if matches else None
-
-
-def next_overdue(now=None):
-    """Return the oldest due item for today that has not finished publishing."""
-    current = now or _now()
-    date_text = current.date().isoformat()
-    candidates = []
-    for item in _load():
-        slot = item.get("slot")
-        if (
-            item.get("date") != date_text
-            or slot not in SLOTS
-            or item.get("status", "draft") != "ready"
-        ):
-            continue
-        scheduled = datetime.fromisoformat(
-            f"{date_text}T{SLOTS[slot]}:00"
-        ).replace(tzinfo=current.tzinfo)
-        if scheduled <= current:
-            candidates.append((scheduled, item))
-
-    candidates.sort(key=lambda value: value[0])
-    with connect() as con:
-        for _, item in candidates:
-            existing = con.execute(
-                "SELECT status FROM drafts WHERE source_key=?", (str(item["key"]),)
-            ).fetchone()
-            if not existing or existing["status"] == "pending":
-                return item
-            if existing["status"] in {"publishing", "publish_failed"}:
-                raise RuntimeError(
-                    f"未確認の投稿試行があります: {item['key']} ({existing['status']})"
-                )
-    return None
 
 
 def preview(slot, target_date=None):
@@ -196,15 +154,30 @@ def prepare(slot, target_date=None):
             ),
         )
         draft_id = cur.lastrowid
-    # 画像と原稿はGPT側で完成させる。GitHub側では生成・補完しない。
     image_path = item.get("image_path")
-    if image_path and not Path(image_path).is_file():
-        raise FileNotFoundError(
-            f"GPTが作成した投稿画像がGitHub上にありません: {image_path}"
+    if image_path:
+        if not Path(image_path).is_file():
+            raise FileNotFoundError(
+                f"事前生成画像がGitHub上にありません: {image_path}"
+            )
+        if item["format"] == "three_choice":
+            for reply in replies:
+                reply_image = reply.get("image_path")
+                if not reply_image or not Path(reply_image).is_file():
+                    raise FileNotFoundError(
+                        f"3択結果画像がGitHub上にありません: {reply_image}"
+                    )
+    elif cards:
+        image_path = render_post_image(
+            draft_id,
+            item["format"],
+            item["title"],
+            cards,
+            item.get("event"),
+            item.get("image_copy"),
         )
-    if item["format"] == "three_choice":
-        if not image_path:
-            raise ValueError("3択投稿にはGPTが作成した選択画像が必要です")
+    else:
+        image_path = None
     with connect() as con:
         con.execute(
             "UPDATE drafts SET image_path=? WHERE id=?", (image_path, draft_id)

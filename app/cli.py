@@ -170,23 +170,11 @@ def dispatch(slot, target_date=None):
             "draft_id": row["id"],
             "api_requested": False,
         }
-    if row["status"] not in {"pending", "partial_reply_failure"}:
+    if row["status"] != "pending":
         raise RuntimeError(
             f"予約投稿は再送できない状態です: {row['status']}"
         )
     return {"status": "published", **publish(row["id"])}
-
-
-def dispatch_due():
-    from .queue import next_overdue
-
-    item = next_overdue()
-    if not item:
-        return {
-            "status": "nothing_due",
-            "api_requested": False,
-        }
-    return dispatch(item["slot"], item["date"])
 
 
 def main():
@@ -210,7 +198,6 @@ def main():
     dispatch_cmd = sub.add_parser("dispatch")
     dispatch_cmd.add_argument("slot", choices=("morning", "noon", "evening"))
     dispatch_cmd.add_argument("--date")
-    sub.add_parser("dispatch-due")
     publish_cmd = sub.add_parser("publish")
     publish_cmd.add_argument("draft_id", type=int)
     args = parser.parse_args()
@@ -241,8 +228,6 @@ def main():
         show(prepare_slot(args.slot, args.date))
     elif args.cmd == "dispatch":
         show(dispatch(args.slot, args.date))
-    elif args.cmd == "dispatch-due":
-        show(dispatch_due())
     elif args.cmd == "analyze":
         from .analytics import analyze
         show(analyze())
