@@ -1,12 +1,13 @@
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 
 WIDTH, HEIGHT = 1080, 1350
 BG = "#071217"
 GOLD = "#D8B76A"
 CARD_DIR = Path(__file__).resolve().parents[1] / "tarot_cards"
+LABEL_FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf"
 
 
 def _canvas():
@@ -56,12 +57,35 @@ def render_choice_image(path, cards):
     start_x = (WIDTH - card_w * 3 - gap * 2) // 2
     top = (HEIGHT - card_h) // 2
     for index, card in enumerate(cards):
+        card_x = start_x + index * (card_w + gap)
         _paste_card(
             image,
             draw,
             card,
-            (start_x + index * (card_w + gap), top),
+            (card_x, top),
             (card_w, card_h),
+        )
+        # Keep the choice marker on the card itself.  A dark badge preserves
+        # legibility without covering the central tarot illustration.
+        label_x = card_x + card_w // 2
+        label_y = top + card_h - 58
+        draw.ellipse(
+            (
+                label_x - 43,
+                label_y - 43,
+                label_x + 43,
+                label_y + 43,
+            ),
+            fill=BG,
+            outline=GOLD,
+            width=4,
+        )
+        draw.text(
+            (label_x, label_y - 2),
+            "ABC"[index],
+            font=ImageFont.truetype(LABEL_FONT, 58),
+            fill=GOLD,
+            anchor="mm",
         )
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
