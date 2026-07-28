@@ -100,6 +100,29 @@ jobs:
             python -m app.cli prepare-slot "${{ steps.route.outputs.slot }}"
           fi
 
+      - name: Prepare selected content before API
+        if: ${{ steps.route.outputs.operation == 'dispatch' }}
+        env:
+          DATABASE_PATH: data/tarot_growth.db
+          CONTENT_QUEUE_PATH: data/content_queue.json
+        run: |
+          if [ -n "${{ steps.route.outputs.target_date }}" ]; then
+            python -m app.cli prepare-slot "${{ steps.route.outputs.slot }}" --date "${{ steps.route.outputs.target_date }}"
+          else
+            python -m app.cli prepare-slot "${{ steps.route.outputs.slot }}"
+          fi
+
+      - name: Publish prepared images before Threads fetches them
+        if: ${{ steps.route.outputs.operation == 'dispatch' }}
+        run: |
+          git config user.name "threads-growth-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add generated/ data/tarot_growth.db
+          if ! git diff --cached --quiet; then
+            git commit -m "data: prepare scheduled Threads content"
+            git push
+          fi
+
       - name: Dispatch scheduled content
         if: ${{ steps.route.outputs.operation == 'dispatch' }}
         env:
