@@ -218,9 +218,13 @@ class SystemTest(unittest.TestCase):
         calls = []
 
         class ReplyAPI:
-            def publish_image(self, text, image_url, reply_to_id=None):
-                calls.append((text, image_url, reply_to_id))
-                return f"media-{len(calls)}"
+            def publish_image(self, text, image_url):
+                calls.append(("image", text, image_url, None))
+                return "media-parent"
+
+            def publish_text(self, text, reply_to_id=None):
+                calls.append(("text", text, None, reply_to_id))
+                return f"media-reply-{len(calls) - 1}"
 
         with patch("app.publisher.ThreadsAPI", ReplyAPI), patch(
             "app.publisher.settings",
@@ -228,8 +232,80 @@ class SystemTest(unittest.TestCase):
         ):
             result = publish(draft_id)
         self.assertEqual(len(calls), 4)
-        self.assertIsNone(calls[0][2])
-        self.assertEqual(result["reply_ids"], ["media-2", "media-3", "media-4"])
+        self.assertEqual(calls[0][0], "image")
+        self.assertEqual([call[0] for call in calls[1:]], ["text", "text", "text"])
+        self.assertEqual(
+            [call[3] for call in calls[1:]],
+            ["media-parent", "media-parent", "media-parent"],
+        )
+        self.assertEqual(
+            result["reply_ids"],
+            ["media-reply-1", "media-reply-2", "media-reply-3"],
+        )
+
+    def test_partial_reply_failure_resumes_without_reposting_parent(self):
+        with connect() as con:
+            cur = con.execute(
+                """INSERT INTO drafts(
+                   format,topic,hook_type,cta_type,cards_json,body,body_hash,
+                   image_path,status,quality_json,replies_json
+                   ) VALUES(?,?,?,?,?,?,?,?,?,?,?)""",
+                (
+                    "three_choice", "復縁", "3択", "comment", "[]",
+                    "A・B・Cから直感で一枚選んでください。結果は返信欄です。",
+                    "reply-resume-weekly-test", "generated/post-99998.png",
+                    "pending", jdump({"passed": True}),
+                    jdump([
+                        {"label": "A", "text": "Aの結果"},
+                        {"label": "B", "text": "Bの結果"},
+                        {"label": "C", "text": "Cの結果"},
+                    ]),
+                ),
+            )
+            draft_id = cur.lastrowid
+
+        first_calls = []
+
+        class FirstAPI:
+            def publish_image(self, text, image_url):
+                first_calls.append(("parent", text))
+                return "resume-parent"
+
+            def publish_text(self, text, reply_to_id=None):
+                first_calls.append(("reply", text, reply_to_id))
+                if text == "Bの結果":
+                    raise RuntimeError("simulated reply failure")
+                return "resume-A"
+
+        with patch("app.publisher.ThreadsAPI", FirstAPI), patch(
+            "app.publisher.settings",
+            SimpleNamespace(image_base_url="https://example.com"),
+        ):
+            with self.assertRaises(RuntimeError):
+                publish(draft_id)
+
+        second_calls = []
+
+        class ResumeAPI:
+            def publish_text(self, text, reply_to_id=None):
+                second_calls.append((text, reply_to_id))
+                return f"resume-{text[0]}"
+
+        with patch("app.publisher.ThreadsAPI", ResumeAPI), patch(
+            "app.publisher.settings",
+            SimpleNamespace(image_base_url="https://example.com"),
+        ):
+            result = publish(draft_id)
+
+        self.assertEqual(
+            second_calls,
+            [("Bの結果", "resume-parent"), ("Cの結果", "resume-parent")],
+        )
+        self.assertEqual(
+            result["reply_ids"],
+            ["resume-A", "resume-B", "resume-C"],
+        )
+        self.assertTrue(result["resumed"])
 
 
 if __name__ == "__main__":
