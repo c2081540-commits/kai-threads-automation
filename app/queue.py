@@ -205,12 +205,6 @@ def prepare(slot, target_date=None):
     if item["format"] == "three_choice":
         if not image_path:
             raise ValueError("3択投稿にはGPTが作成した選択画像が必要です")
-        for reply in replies:
-            reply_image = reply.get("image_path")
-            if not reply_image or not Path(reply_image).is_file():
-                raise FileNotFoundError(
-                    f"GPTが作成した3択結果画像がGitHub上にありません: {reply_image}"
-                )
     with connect() as con:
         con.execute(
             "UPDATE drafts SET image_path=? WHERE id=?", (image_path, draft_id)

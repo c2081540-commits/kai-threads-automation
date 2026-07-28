@@ -133,27 +133,23 @@ def _render_choice(draft_id, title, cards):
         raise ValueError("同じカードを重複配置できません")
 
     image, draw = _canvas()
-    _title(draw, title)
-    _center_text(draw, "一度深呼吸して、直感で1枚選んでください", 235, _font(34), MUTED)
 
     card_w, card_h = 286, 429
     gap = 37
     start_x = (WIDTH - card_w * 3 - gap * 2) // 2
-    top = 345
-    label_font = _font(58)
+    top = 330
+    label_font = _font(90)
     for index, (label, card) in enumerate(zip("ABC", cards)):
         x = start_x + index * (card_w + gap)
         _paste_card(image, draw, card, (x, top), (card_w, card_h), darken=False)
         box = draw.textbbox((0, 0), label, font=label_font)
         draw.text(
-            (x + (card_w - (box[2] - box[0])) / 2, top + card_h + 36),
+            (x + (card_w - (box[2] - box[0])) / 2, top + card_h + 65),
             label,
             font=label_font,
             fill=GOLD,
         )
 
-    _center_text(draw, "結果は返信欄へ", 1015, _font(44), CREAM)
-    _center_text(draw, "Kai 復縁タロット", 1235, _font(28), GOLD)
     out = Path("generated") / f"post-{draft_id:05d}.png"
     out.parent.mkdir(parents=True, exist_ok=True)
     image.save(out, "PNG", optimize=True)
@@ -274,11 +270,7 @@ def render_post_image(
     if fmt == "three_choice":
         if len(cards) != 3:
             raise ValueError("3択画像には異なるカードが3枚必要です")
-        main = _render_choice(draft_id, title, cards[:3])
-        reply_map = {item["label"]: item["text"] for item in (replies or [])}
-        for label, card in zip("ABC", cards[:3]):
-            _render_result(draft_id, label, card, reply_map.get(label, ""))
-        return main
+        return _render_choice(draft_id, title, cards[:3])
     if (image_spec or {}).get("kind", "none") == "none":
         return None
     return _render_template(draft_id, title, image_spec)

@@ -170,7 +170,7 @@ def dispatch(slot, target_date=None):
             "draft_id": row["id"],
             "api_requested": False,
         }
-    if row["status"] != "pending":
+    if row["status"] not in {"pending", "partial_reply_failure"}:
         raise RuntimeError(
             f"予約投稿は再送できない状態です: {row['status']}"
         )
