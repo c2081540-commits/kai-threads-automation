@@ -40,13 +40,17 @@ def publish(draft_id):
     )
     replies = json.loads(row["replies_json"] or "[]")
     media_id = None
+    permalink = None
     reply_ids = []
     try:
         api = ThreadsAPI()
+        api.verify_identity()
         media_id = (
             api.publish_image(row["body"], image_url)
             if image_url else api.publish_text(row["body"])
         )
+        parent_media = api.wait_until_published(media_id)
+        permalink = parent_media["permalink"]
         for reply in replies:
             label = reply.get("label")
             reply_image_path = (
@@ -69,6 +73,7 @@ def publish(draft_id):
                 if reply_image_url
                 else api.publish_text(reply["text"], media_id)
             )
+            api.wait_until_published(reply_id)
             reply_ids.append(reply_id)
     except Exception as exc:
         with connect() as con:
@@ -103,18 +108,24 @@ def publish(draft_id):
         )
         raise
 
-    # threads_publish がIDを返した時点で成功扱いにする。
-    # permalink取得のための追加GETは行わず、不要なAPI要求と二重投稿を防ぐ。
+    # ID返却だけでは成功扱いにせず、公開後の取得とpermalinkを確認する。
     with connect() as con:
         cur = con.execute(
-            """INSERT INTO posts(draft_id,threads_media_id,reply_ids_json)
-               VALUES(?,?,?)""",
-            (draft_id, media_id, json.dumps(reply_ids, ensure_ascii=False)),
+            """INSERT INTO posts(
+               draft_id,threads_media_id,permalink,reply_ids_json
+               ) VALUES(?,?,?,?)""",
+            (
+                draft_id,
+                media_id,
+                permalink,
+                json.dumps(reply_ids, ensure_ascii=False),
+            ),
         )
         con.execute("UPDATE drafts SET status='published' WHERE id=?", (draft_id,))
     result = {
         "post_id": cur.lastrowid,
         "id": media_id,
+        "permalink": permalink,
         "image_url": image_url,
         "reply_ids": reply_ids,
     }

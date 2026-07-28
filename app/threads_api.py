@@ -127,6 +127,31 @@ class ThreadsAPI:
             {"fields": "id,permalink,timestamp,text", "access_token": self.token},
         )
 
+    def wait_until_published(self, media_id, attempts=10, interval=2):
+        import time
+
+        last_error = None
+        for attempt in range(attempts):
+            try:
+                result = self.media(media_id)
+                if (
+                    str(result.get("id")) == str(media_id)
+                    and result.get("permalink")
+                ):
+                    return result
+                last_error = RuntimeError(
+                    f"公開投稿の応答が不完全です: {result}"
+                )
+            except Exception as exc:
+                last_error = exc
+            if attempt < attempts - 1:
+                time.sleep(interval)
+
+        raise RuntimeError(
+            f"Threads公開確認に失敗しました: media_id={media_id}, "
+            f"last_error={last_error}"
+        )
+
     def insights(self, media_id):
         metrics = "views,likes,replies,reposts,quotes,shares"
         return self._get(

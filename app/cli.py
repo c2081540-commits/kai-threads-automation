@@ -165,11 +165,10 @@ def dispatch(slot, target_date=None):
             "api_requested": False,
         }
     if row["status"] == "published":
-        return {
-            "status": "already_published",
-            "draft_id": row["id"],
-            "api_requested": False,
-        }
+        raise RuntimeError(
+            "この投稿枠は既に公開済みとして記録されています。"
+            "Threads APIへの再送は行っていません。"
+        )
     if row["status"] != "pending":
         raise RuntimeError(
             f"予約投稿は再送できない状態です: {row['status']}"

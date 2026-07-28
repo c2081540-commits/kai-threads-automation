@@ -98,6 +98,9 @@ class SystemTest(unittest.TestCase):
         class FailingAPI:
             calls = 0
 
+            def verify_identity(self):
+                return {"id": "user-1", "username": "kai"}
+
             def publish_text(self, text):
                 self.__class__.calls += 1
                 raise RuntimeError("simulated timeout")
@@ -116,7 +119,7 @@ class SystemTest(unittest.TestCase):
         self.assertEqual(row["status"], "publish_failed")
         self.assertEqual(row["publish_attempts"], 1)
 
-    def test_success_does_not_make_extra_media_get(self):
+    def test_success_requires_public_permalink(self):
         with connect() as con:
             cur = con.execute(
                 """INSERT INTO drafts(
@@ -134,15 +137,28 @@ class SystemTest(unittest.TestCase):
         class SuccessfulAPI:
             calls = 0
 
+            def verify_identity(self):
+                return {"id": "user-1", "username": "kai"}
+
             def publish_text(self, text):
                 self.__class__.calls += 1
                 return "media-123"
+
+            def wait_until_published(self, media_id):
+                return {
+                    "id": media_id,
+                    "permalink": "https://www.threads.net/@kai/post/media-123",
+                }
 
         with patch("app.publisher.ThreadsAPI", SuccessfulAPI):
             result = publish(draft_id)
 
         self.assertEqual(SuccessfulAPI.calls, 1)
         self.assertEqual(result["id"], "media-123")
+        self.assertEqual(
+            result["permalink"],
+            "https://www.threads.net/@kai/post/media-123",
+        )
 
     def test_image_wait_requests_only_supported_container_fields(self):
         api = ThreadsAPI.__new__(ThreadsAPI)
@@ -175,6 +191,22 @@ class SystemTest(unittest.TestCase):
         result = preview("morning", "2030-01-01")
         self.assertEqual(result["status"], "no_content")
         self.assertFalse(result["api_requested"])
+
+    def test_already_published_slot_fails_instead_of_green_success(self):
+        from app.cli import dispatch
+
+        with patch(
+            "app.queue.preview",
+            return_value={"status": "ready"},
+        ), patch(
+            "app.queue.prepare",
+            return_value={"id": 123, "status": "published"},
+        ), patch(
+            "app.settings.settings",
+            SimpleNamespace(auto_publish=True),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "再送は行っていません"):
+                dispatch("morning", "2030-01-01")
 
     def test_three_choice_queue_keeps_answers_in_replies(self):
         Path("data").mkdir(exist_ok=True)
@@ -243,12 +275,21 @@ class SystemTest(unittest.TestCase):
         calls = []
 
         class ReplyAPI:
+            def verify_identity(self):
+                return {"id": "user-1", "username": "kai"}
+
             def publish_image(self, text, image_url, reply_to_id=None):
                 calls.append((text, image_url, reply_to_id))
                 return f"media-{len(calls)}"
 
             def publish_text(self, text, reply_to_id=None):
                 raise AssertionError("画像投稿である必要があります")
+
+            def wait_until_published(self, media_id):
+                return {
+                    "id": media_id,
+                    "permalink": f"https://www.threads.net/@kai/post/{media_id}",
+                }
 
         with patch("app.publisher.ThreadsAPI", ReplyAPI), patch(
             "app.publisher.settings",
