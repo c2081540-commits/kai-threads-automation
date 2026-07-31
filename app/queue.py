@@ -105,6 +105,7 @@ def preview(slot, target_date=None):
         "slot": slot,
         "format": item["format"],
         "topic": item["topic"],
+        "topic_tag": item.get("topic_tag"),
         "title": item["title"],
         "body": item["body"],
         "image_path": item.get("image_path"),
@@ -168,13 +169,14 @@ def prepare(slot, target_date=None):
         with connect() as con:
             con.execute(
                 """UPDATE drafts SET
-                   format=?,topic=?,hook_type=?,cta_type=?,cards_json=?,
+                   format=?,topic=?,topic_tag=?,hook_type=?,cta_type=?,cards_json=?,
                    body=?,body_hash=?,quality_json=?,scheduled_at=?,slot=?,
                    replies_json=?,image_path=?
                    WHERE id=?""",
                 (
                     item["format"],
                     item["topic"],
+                    item.get("topic_tag"),
                     item["title"],
                     item.get("cta_type", "none"),
                     jdump(cards),
@@ -199,12 +201,13 @@ def prepare(slot, target_date=None):
     with connect() as con:
         cur = con.execute(
             """INSERT INTO drafts(
-               format,topic,hook_type,cta_type,cards_json,body,body_hash,
+               format,topic,topic_tag,hook_type,cta_type,cards_json,body,body_hash,
                status,quality_json,source_key,scheduled_at,slot,replies_json
-               ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+               ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (
                 item["format"],
                 item["topic"],
+                item.get("topic_tag"),
                 item["title"],
                 item.get("cta_type", "none"),
                 jdump(cards),

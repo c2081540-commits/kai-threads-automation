@@ -131,11 +131,13 @@ class ThreadsAPI:
             "username": result.get("username", ""),
         }
 
-    def publish_text(self, text, reply_to_id=None):
+    def publish_text(self, text, reply_to_id=None, topic_tag=None):
         common = {"access_token": self.token}
         payload = {**common, "media_type": "TEXT", "text": text}
         if reply_to_id:
             payload["reply_to_id"] = reply_to_id
+        if topic_tag:
+            payload["topic_tag"] = topic_tag
         container = self._post(
             f"{self.user_id}/threads",
             payload,
@@ -143,7 +145,7 @@ class ThreadsAPI:
         published = self._publish_container(container["id"])
         return published["id"]
 
-    def publish_image(self, text, image_url, reply_to_id=None):
+    def publish_image(self, text, image_url, reply_to_id=None, topic_tag=None):
         common = {"access_token": self.token}
         payload = {
             **common,
@@ -153,6 +155,8 @@ class ThreadsAPI:
         }
         if reply_to_id:
             payload["reply_to_id"] = reply_to_id
+        if topic_tag:
+            payload["topic_tag"] = topic_tag
         container = self._post(
             f"{self.user_id}/threads",
             payload,

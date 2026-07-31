@@ -45,10 +45,20 @@ def publish(draft_id):
     try:
         api = ThreadsAPI()
         api.verify_identity()
-        media_id = (
-            api.publish_image(row["body"], image_url)
-            if image_url else api.publish_text(row["body"])
-        )
+        if image_url:
+            media_id = (
+                api.publish_image(
+                    row["body"], image_url, topic_tag=row["topic_tag"]
+                )
+                if row["topic_tag"]
+                else api.publish_image(row["body"], image_url)
+            )
+        else:
+            media_id = (
+                api.publish_text(row["body"], topic_tag=row["topic_tag"])
+                if row["topic_tag"]
+                else api.publish_text(row["body"])
+            )
         parent_media = api.wait_until_published(media_id)
         permalink = parent_media["permalink"]
         for reply in replies:

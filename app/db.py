@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS drafts(
   id INTEGER PRIMARY KEY,
   format TEXT NOT NULL,
   topic TEXT NOT NULL,
+  topic_tag TEXT,
   hook_type TEXT NOT NULL,
   cta_type TEXT NOT NULL,
   cards_json TEXT NOT NULL,
@@ -93,6 +94,8 @@ def init_db():
         columns = {row["name"] for row in con.execute("PRAGMA table_info(drafts)")}
         if "image_path" not in columns:
             con.execute("ALTER TABLE drafts ADD COLUMN image_path TEXT")
+        if "topic_tag" not in columns:
+            con.execute("ALTER TABLE drafts ADD COLUMN topic_tag TEXT")
         if "publish_attempts" not in columns:
             con.execute(
                 "ALTER TABLE drafts ADD COLUMN publish_attempts INTEGER NOT NULL DEFAULT 0"
