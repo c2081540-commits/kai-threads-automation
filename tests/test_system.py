@@ -313,6 +313,49 @@ class SystemTest(unittest.TestCase):
         row = prepare("evening", "2030-01-01")
         self.assertTrue(os.path.isfile(row["image_path"]))
 
+    def test_three_choice_queue_accepts_left_center_right_labels(self):
+        Path("data").mkdir(exist_ok=True)
+        Path("generated").mkdir(exist_ok=True)
+        image_paths = [
+            "generated/test-three-choice.png",
+            "generated/test-three-choice-result-left.png",
+            "generated/test-three-choice-result-center.png",
+            "generated/test-three-choice-result-right.png",
+        ]
+        for image_path in image_paths:
+            Path(image_path).touch()
+        queue = [
+            {
+                "key": "test-three-choice-ja-labels",
+                "date": "2030-01-03",
+                "slot": "evening",
+                "status": "ready",
+                "format": "three_choice",
+                "topic": "相手の気持ち",
+                "title": "今の彼の本音",
+                "body": "直感でA・B・Cから1枚選んでください。結果は返信欄へ。",
+                "card_ids": [2, 6, 18],
+                "image_path": image_paths[0],
+                "replies": [
+                    {"label": "左", "text": "Aの結果", "image_path": image_paths[1]},
+                    {"label": "中央", "text": "Bの結果", "image_path": image_paths[2]},
+                    {"label": "右", "text": "Cの結果", "image_path": image_paths[3]},
+                ],
+            }
+        ]
+        Path("data/content_queue.json").write_text(
+            __import__("json").dumps(queue, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        result = preview("evening", "2030-01-03")
+        self.assertEqual(result["status"], "ready")
+        self.assertEqual(
+            [reply["label"] for reply in result["replies"]],
+            ["左", "中央", "右"],
+        )
+        row = prepare("evening", "2030-01-03")
+        self.assertEqual(row["image_path"], image_paths[0])
+
     def test_existing_text_draft_drops_stale_image_path(self):
         Path("data").mkdir(exist_ok=True)
         queue = [

@@ -66,9 +66,12 @@ def _validate(item):
             raise ValueError("3択投稿には異なるカードIDが3枚必要です")
         replies = item.get("replies", [])
         if len(replies) != 3:
-            raise ValueError("3択投稿にはA・B・Cの返信が3件必要です")
-        if [reply.get("label") for reply in replies] != list("ABC"):
-            raise ValueError("3択返信の順番はA・B・Cである必要があります")
+            raise ValueError("3択投稿には返信が3件必要です")
+        reply_labels = [reply.get("label") for reply in replies]
+        if reply_labels not in (list("ABC"), ["左", "中央", "右"]):
+            raise ValueError(
+                "3択返信の順番はA・B・Cまたは左・中央・右である必要があります"
+            )
     return quality, [CARD_BY_ID[value] for value in card_ids]
 
 
