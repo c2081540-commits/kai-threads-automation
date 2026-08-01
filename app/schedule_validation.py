@@ -6,8 +6,8 @@ from pathlib import Path
 from PIL import Image
 
 
-PERIOD_START = ("2026-07-31", "evening")
-PERIOD_END = ("2026-08-01", "evening")
+PERIOD_START = ("2026-08-02", "morning")
+PERIOD_END = ("2026-08-04", "evening")
 WEEK_FOLDER = Path("generated/weeks/20260731-20260806")
 SLOT_TIME = {"morning": "0700", "noon": "1200", "evening": "2000"}
 
@@ -26,9 +26,9 @@ def validate_schedule(queue_path="data/content_queue.json"):
     posts = [item for item in queue if is_target(item) and item.get("status") == "ready"]
     errors = []
     results = []
-    if len(posts) != 4:
-        errors.append(f"対象期間のready投稿が4件ではありません: {len(posts)}")
-    expected = [f"KAI-{index:03d}" for index in range(1, 5)]
+    if len(posts) != 9:
+        errors.append(f"対象期間のready投稿が9件ではありません: {len(posts)}")
+    expected = [f"KAI-{index:03d}" for index in range(5, 14)]
     actual = [item.get("post_no") for item in posts]
     if actual != expected:
         errors.append(f"投稿番号または日時順が不正です: {actual}")
