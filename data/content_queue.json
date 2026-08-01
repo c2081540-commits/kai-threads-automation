@@ -1,5 +1,46 @@
 [
   {
+    "key": "2026-08-01-evening-kai-004",
+    "post_no": "KAI-004",
+    "date": "2026-08-01",
+    "slot": "evening",
+    "status": "ready",
+    "format": "three_choice",
+    "topic": "彼の本音",
+    "topic_tag": "恋愛占い",
+    "title": "今、彼の中に残っている気持ち",
+    "body": "別れた後、彼の中に残るのは未練だけではありません。\n\nあなたへの愛情や安心感なのか。一人で振り返りたい気持ちなのか。それとも、不安が混ざって答えを出せない状態なのか。\n\nA・B・Cで気になるカードを選び、🔑を置いてください。結果は返信欄に続けます。",
+    "image_title": "今、彼の中に残っている気持ち",
+    "cta_type": "comment",
+    "cta_word": "本音",
+    "card_ids": [
+      3,
+      9,
+      18
+    ],
+    "image_path": "generated/weeks/20260731-20260806/20260801_2000_KAI-004_three-choice.png",
+    "replies": [
+      {
+        "label": "左",
+        "text": "Aを選んだあなたへ｜女帝\n\nあなたと過ごしたときの安心感や、受け入れてもらえた記憶が残っていそうです。一方で、その優しさに彼が甘えていた可能性もあります。戻るなら、自分ばかりが支える関係にならないことが大切です。",
+        "next_action": "",
+        "image_path": "generated/weeks/20260731-20260806/20260801_2000_KAI-004_three-choice-result-left.png"
+      },
+      {
+        "label": "中央",
+        "text": "Bを選んだあなたへ｜隠者\n\n気持ちが消えたというより、彼は一人で関係を振り返っているのかもしれません。今は答えを急がせるより、沈黙の時間を尊重した方がよさそうです。その間に、本当に聞きたいことを一つだけ整理しておいてください。",
+        "next_action": "",
+        "image_path": "generated/weeks/20260731-20260806/20260801_2000_KAI-004_three-choice-result-center.png"
+      },
+      {
+        "label": "右",
+        "text": "Cを選んだあなたへ｜月\n\n未練、不安、警戒が混ざり、彼自身も気持ちを決めきれていないようです。SNSの反応や一時的な態度だけで、好意とも拒絶とも断定しない方がよいでしょう。判断材料にするのは、実際の会話や連絡で確認できた言動です。",
+        "next_action": "",
+        "image_path": "generated/weeks/20260731-20260806/20260801_2000_KAI-004_three-choice-result-right.png"
+      }
+    ]
+  },
+  {
     "key": "2026-08-02-morning-kai-005",
     "post_no": "KAI-005",
     "date": "2026-08-02",
