@@ -1,0 +1,52 @@
+name: Threads Insights Collector
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 07:30 / 12:30 / 20:30 / 23:30 JST
+    - cron: "30 22,3,11,14 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: threads-scheduled-dispatch
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Validate before API request
+        run: python -m unittest discover -s tests -v
+
+      - name: Collect and export insights
+        env:
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          THREADS_API_VERSION: ${{ vars.THREADS_API_VERSION || 'v1.0' }}
+          DATABASE_PATH: data/tarot_growth.db
+        run: |
+          python -m app.cli analyze
+          python -m app.cli export
+
+      - name: Save insight history
+        run: |
+          git config user.name "threads-growth-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/tarot_growth.db data/post_history.csv data/analysis_report.md data/insights/
+          if ! git diff --cached --quiet; then
+            git commit -m "data: collect Threads insights"
+            git push
+          fi

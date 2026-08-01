@@ -4,6 +4,17 @@ from .db import connect, jdump, log_event
 from .threads_api import ThreadsAPI
 
 
+SNAPSHOTS = ((168, "7d"), (72, "72h"), (24, "24h"))
+
+
+def _due_snapshot(age_hours, collected):
+    eligible = next(
+        (label for hours, label in SNAPSHOTS if age_hours >= hours),
+        None,
+    )
+    return eligible if eligible and eligible not in collected else None
+
+
 def _values(raw):
     out = {}
     for item in raw.get("data", []):
@@ -45,25 +56,29 @@ def analyze():
     api = ThreadsAPI()
     results = []
     errors = []
-    max_requests_per_run = 5
+    max_requests_per_run = 20
     requests_used = 0
     with connect() as con:
         posts = con.execute(
             """SELECT p.*,d.format,d.topic,d.cta_type,d.hook_type
                FROM posts p JOIN drafts d ON d.id=p.draft_id
-               WHERE p.status='published' AND COALESCE(p.insight_attempts,0) < 2
+               WHERE p.status='published'
                ORDER BY p.id"""
         ).fetchall()
         for post in posts:
             if requests_used >= max_requests_per_run:
                 break
             age = _age_hours(post["published_at"])
-            already = con.execute(
-                "SELECT 1 FROM metrics WHERE post_id=? LIMIT 1", (post["id"],)
-            ).fetchone()
-            # 初回評価は投稿後18時間以降に一度だけ行う。
-            # 同じ投稿を毎日再学習して重みが偏ることを防ぐ。
-            if age < 18 or already:
+            collected = {
+                row["snapshot_label"]
+                for row in con.execute(
+                    "SELECT snapshot_label FROM metrics WHERE post_id=?",
+                    (post["id"],),
+                )
+                if row["snapshot_label"]
+            }
+            snapshot_label = _due_snapshot(age, collected)
+            if not snapshot_label:
                 continue
             # 取得前に回数を記録。障害時でも同一実行内で再送しない。
             con.execute(
@@ -91,23 +106,27 @@ def analyze():
             weighted = like_rate + reply_rate * 4 + share_rate * 5
             con.execute(
                 """INSERT INTO metrics(
-                   post_id,age_hours,views,likes,replies,reposts,quotes,shares,
+                   post_id,age_hours,snapshot_label,views,likes,replies,reposts,quotes,shares,
                    like_rate,reply_rate,share_rate,weighted_score,raw_json
-                   ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                   ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (
-                    post["id"], age, views,
+                    post["id"], age, snapshot_label, views,
                     v.get("likes", 0), v.get("replies", 0), v.get("reposts", 0),
                     v.get("quotes", 0), v.get("shares", 0), like_rate,
                     reply_rate, share_rate, weighted, jdump(raw),
                 ),
             )
-            weights = {
-                "format": _update_knowledge(con, "format", post["format"], weighted),
-                "topic": _update_knowledge(con, "topic", post["topic"], weighted),
-                "cta": _update_knowledge(con, "cta", post["cta_type"], weighted),
-            }
+            # 学習値は24時間スナップショットだけで更新し、同じ投稿の重複学習を防ぐ。
+            weights = {}
+            if snapshot_label == "24h":
+                weights = {
+                    "format": _update_knowledge(con, "format", post["format"], weighted),
+                    "topic": _update_knowledge(con, "topic", post["topic"], weighted),
+                    "cta": _update_knowledge(con, "cta", post["cta_type"], weighted),
+                }
             results.append({
-                "post_id": post["id"], "views": views, "like_rate": like_rate,
+                "post_id": post["id"], "snapshot": snapshot_label,
+                "views": views, "like_rate": like_rate,
                 "reply_rate": reply_rate, "share_rate": share_rate,
                 "weighted_score": weighted, "updated_weights": weights,
             })

@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS metrics(
   post_id INTEGER NOT NULL,
   collected_at TEXT DEFAULT CURRENT_TIMESTAMP,
   age_hours REAL DEFAULT 0,
+  snapshot_label TEXT,
   views INTEGER DEFAULT 0,
   likes INTEGER DEFAULT 0,
   replies INTEGER DEFAULT 0,
@@ -131,6 +132,13 @@ def init_db():
             con.execute(
                 "ALTER TABLE posts ADD COLUMN reply_ids_json TEXT NOT NULL DEFAULT '[]'"
             )
+        metric_columns = {row["name"] for row in con.execute("PRAGMA table_info(metrics)")}
+        if "snapshot_label" not in metric_columns:
+            con.execute("ALTER TABLE metrics ADD COLUMN snapshot_label TEXT")
+        con.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_metrics_post_snapshot "
+            "ON metrics(post_id,snapshot_label) WHERE snapshot_label IS NOT NULL"
+        )
 
 
 def jdump(value):

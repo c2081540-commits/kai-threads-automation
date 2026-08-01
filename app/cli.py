@@ -2,6 +2,7 @@ import argparse
 import csv
 import json
 import os
+import re
 from .db import connect, init_db, log_event
 
 
@@ -9,28 +10,69 @@ def show(value):
     print(json.dumps(value, ensure_ascii=False, indent=2))
 
 
+LATEST_PATH = "data/insights/threads_insights_latest.csv"
+HISTORY_PATH = "data/insights/threads_insights_history.csv"
+
+
+def _write_csv(path, rows, fallback_fields):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8-sig", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fallback_fields)
+        writer.writeheader()
+        writer.writerows(dict(r) for r in rows)
+
+
+def _with_kai_id(rows):
+    output = []
+    for row in rows:
+        item = dict(row)
+        match = re.search(r"KAI-\d+", item.pop("source_key", "") or "", re.I)
+        item["kai_id"] = match.group(0).upper() if match else ""
+        output.append(item)
+    return output
+
+
 def export_csv(path="data/post_history.csv"):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with connect() as con:
         rows = con.execute(
-            """SELECT p.id,p.permalink,p.published_at,d.format,d.topic,d.hook_type,
+            """SELECT p.id,d.source_key,p.threads_media_id,p.permalink,
+                      p.published_at,d.format,d.topic,d.topic_tag,d.hook_type,
                       d.cta_type,d.cards_json,d.body,m.views,m.likes,m.replies,m.reposts,
                       m.quotes,m.shares,m.like_rate,m.reply_rate,m.share_rate,
-                      m.weighted_score,m.collected_at
+                      m.weighted_score,m.snapshot_label,m.age_hours,m.collected_at
                FROM posts p JOIN drafts d ON d.id=p.draft_id
                LEFT JOIN metrics m ON m.id=(
                  SELECT id FROM metrics WHERE post_id=p.id ORDER BY collected_at DESC LIMIT 1
                ) ORDER BY p.id"""
         ).fetchall()
-    fields = list(rows[0].keys()) if rows else [
-        "id","permalink","published_at","format","topic","hook_type","cta_type",
+        history = con.execute(
+            """SELECT m.collected_at,d.source_key,p.threads_media_id,
+                      p.permalink,p.published_at,d.format,d.topic,d.topic_tag,
+                      m.snapshot_label,m.age_hours,m.views,m.likes,m.replies,
+                      m.reposts,m.quotes,m.shares,m.like_rate,m.reply_rate,
+                      m.share_rate,m.weighted_score
+               FROM metrics m JOIN posts p ON p.id=m.post_id
+               JOIN drafts d ON d.id=p.draft_id
+               ORDER BY m.collected_at,p.id"""
+        ).fetchall()
+    rows = _with_kai_id(rows)
+    history = _with_kai_id(history)
+    fields = [
+        "id","kai_id","threads_media_id","permalink","published_at","format",
+        "topic","topic_tag","hook_type","cta_type",
         "cards_json","body","views","likes","replies","reposts","quotes","shares","like_rate",
-        "reply_rate","share_rate","weighted_score","collected_at",
+        "reply_rate","share_rate","weighted_score","snapshot_label","age_hours","collected_at",
     ]
-    with open(path, "w", encoding="utf-8-sig", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fields)
-        writer.writeheader()
-        writer.writerows(dict(r) for r in rows)
+    _write_csv(path, rows, fields)
+    _write_csv(LATEST_PATH, rows, fields)
+    history_fields = [
+        "collected_at","kai_id","threads_media_id","permalink","published_at",
+        "format","topic","topic_tag","snapshot_label","age_hours","views","likes",
+        "replies","reposts","quotes","shares","like_rate","reply_rate","share_rate",
+        "weighted_score",
+    ]
+    _write_csv(HISTORY_PATH, history, history_fields)
     report_path = "data/analysis_report.md"
     with connect() as con:
         knowledge = con.execute(
@@ -46,7 +88,7 @@ def export_csv(path="data/post_history.csv"):
     lines = [
         "# Threads自動分析レポート",
         "",
-        "投稿後18時間以上経過した時点の反応を使い、次回の投稿選定へ反映します。",
+        "投稿後24時間・72時間・7日の反応推移を記録し、24時間値を次回の投稿選定へ反映します。",
         "",
         "## 学習した投稿パターン",
         "",
@@ -79,7 +121,10 @@ def export_csv(path="data/post_history.csv"):
         lines.append("|—|データ蓄積前|—|0|0|0|0|—|")
     with open(report_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
-    return {"path": path, "report_path": report_path, "rows": len(rows)}
+    return {
+        "path": path, "latest_path": LATEST_PATH, "history_path": HISTORY_PATH,
+        "report_path": report_path, "rows": len(rows), "history_rows": len(history),
+    }
 
 
 def cycle():

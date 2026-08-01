@@ -140,17 +140,6 @@ jobs:
             python -m app.cli dispatch "${{ steps.route.outputs.slot }}"
           fi
 
-      - name: Analyze old posts once each morning
-        if: ${{ steps.route.outputs.operation == 'dispatch' && steps.route.outputs.slot == 'morning' && vars.AUTO_ANALYZE == 'true' }}
-        env:
-          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
-          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
-          THREADS_API_VERSION: ${{ vars.THREADS_API_VERSION || 'v1.0' }}
-          DATABASE_PATH: data/tarot_growth.db
-        run: |
-          python -m app.cli analyze
-          python -m app.cli export
-
       - name: Save generated images and results
         if: ${{ steps.route.outputs.operation == 'prepare' || steps.route.outputs.operation == 'dispatch' }}
         run: |
