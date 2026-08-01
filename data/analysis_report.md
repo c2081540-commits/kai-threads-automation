@@ -6,17 +6,18 @@
 
 |分類|項目|重み|評価回数|直近評価|
 |---|---|---:|---:|---:|
-|cta|comment|1.980|6|0.083546|
+|cta|comment|1.983|7|0.419355|
 |cta|share|1.339|2|0.027027|
 |cta|save|1.242|6|0.000000|
 |cta|none|1.000|1|0.000000|
 |format|poll|2.000|2|0.218803|
-|format|three_choice|1.976|5|0.083546|
+|format|three_choice|1.980|6|0.419355|
 |format|psychology|1.339|2|0.027027|
 |format|story|1.154|2|0.012658|
 |format|event_countdown|1.145|1|0.012048|
 |format|event_today|1.000|2|0.000000|
 |format|short_advice|1.000|1|0.000000|
+|topic|8月の関係変化|2.000|1|0.419355|
 |topic|復縁の悩み|2.000|2|0.218803|
 |topic|復縁可能性|2.000|2|0.194030|
 |topic|連絡時期|2.000|1|0.485714|
@@ -31,12 +32,12 @@
 |形式|テーマ|CTA|表示|いいね|返信|シェア系|評価値|
 |---|---|---|---:|---:|---:|---:|---:|
 |three_choice|連絡時期|save|35|1|4|0|0.4857|
+|three_choice|8月の関係変化|comment|31|1|3|0|0.4194|
 |poll|復縁の悩み|comment|585|12|29|0|0.2188|
 |poll|復縁の悩み|comment|490|11|24|0|0.2184|
 |three_choice|復縁可能性|comment|65|1|3|0|0.2000|
 |three_choice|復縁可能性|comment|67|1|3|0|0.1940|
+|three_choice|復縁可能性|comment|67|1|3|0|0.1940|
 |three_choice|彼からの連絡|comment|1173|30|17|0|0.0835|
 |three_choice|彼からの連絡|comment|1170|30|14|0|0.0735|
 |short_advice|追撃連絡|none|32|1|0|0|0.0312|
-|psychology|不安|share|34|1|0|0|0.0294|
-|psychology|不安|share|37|1|0|0|0.0270|
