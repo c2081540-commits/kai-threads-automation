@@ -59,8 +59,13 @@ def _validate(item):
             f"投稿本文が品質ゲートを通過していません: {','.join(quality['reasons'])}"
         )
     card_ids = [int(value) for value in item.get("card_ids", [])]
-    if any(value not in CARD_BY_ID for value in card_ids):
-        raise ValueError("存在しないカードIDが指定されています")
+    has_prebuilt_image = bool(item.get("image_path"))
+    unknown_card_ids = [value for value in card_ids if value not in CARD_BY_ID]
+    if unknown_card_ids and not has_prebuilt_image:
+        raise ValueError(
+            "画像を自動生成する投稿に存在しないカードIDが指定されています: "
+            + ",".join(str(value) for value in unknown_card_ids)
+        )
     if item["format"] == "three_choice":
         if len(card_ids) != 3 or len(set(card_ids)) != 3:
             raise ValueError("3択投稿には異なるカードIDが3枚必要です")
@@ -72,7 +77,13 @@ def _validate(item):
             raise ValueError(
                 "3択返信の順番はA・B・Cまたは左・中央・右である必要があります"
             )
-    return quality, [CARD_BY_ID[value] for value in card_ids]
+    # Prebuilt images are the source of truth. Unknown IDs are allowed here
+    # because they are metadata only and no card artwork is generated.
+    cards = [
+        CARD_BY_ID.get(value, {"id": value, "name_ja": f"カードID {value}"})
+        for value in card_ids
+    ]
+    return quality, cards
 
 
 def due(slot, target_date=None):
@@ -265,3 +276,4 @@ def prepare(slot, target_date=None):
         },
     )
     return result
+
