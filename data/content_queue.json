@@ -1,246 +1,5 @@
 [
   {
-    "key": "2026-08-01-evening-kai-004",
-    "post_no": "KAI-004",
-    "date": "2026-08-01",
-    "slot": "evening",
-    "status": "ready",
-    "format": "three_choice",
-    "topic": "彼の本音",
-    "topic_tag": "恋愛占い",
-    "title": "今、彼の中に残っている気持ち",
-    "body": "別れた後、彼の中に残るのは未練だけではありません。\n\nあなたへの愛情や安心感なのか。一人で振り返りたい気持ちなのか。それとも、不安が混ざって答えを出せない状態なのか。\n\nA・B・Cで気になるカードを選び、🔑を置いてください。結果は返信欄に続けます。",
-    "image_title": "今、彼の中に残っている気持ち",
-    "cta_type": "comment",
-    "cta_word": "本音",
-    "card_ids": [
-      3,
-      9,
-      18
-    ],
-    "image_path": "generated/weeks/20260731-20260806/20260801_2000_KAI-004_three-choice.png",
-    "replies": [
-      {
-        "label": "左",
-        "text": "Aを選んだあなたへ｜女帝\n\nあなたと過ごしたときの安心感や、受け入れてもらえた記憶が残っていそうです。一方で、その優しさに彼が甘えていた可能性もあります。戻るなら、自分ばかりが支える関係にならないことが大切です。",
-        "next_action": "",
-        "image_path": "generated/weeks/20260731-20260806/20260801_2000_KAI-004_three-choice-result-left.png"
-      },
-      {
-        "label": "中央",
-        "text": "Bを選んだあなたへ｜隠者\n\n気持ちが消えたというより、彼は一人で関係を振り返っているのかもしれません。今は答えを急がせるより、沈黙の時間を尊重した方がよさそうです。その間に、本当に聞きたいことを一つだけ整理しておいてください。",
-        "next_action": "",
-        "image_path": "generated/weeks/20260731-20260806/20260801_2000_KAI-004_three-choice-result-center.png"
-      },
-      {
-        "label": "右",
-        "text": "Cを選んだあなたへ｜月\n\n未練、不安、警戒が混ざり、彼自身も気持ちを決めきれていないようです。SNSの反応や一時的な態度だけで、好意とも拒絶とも断定しない方がよいでしょう。判断材料にするのは、実際の会話や連絡で確認できた言動です。",
-        "next_action": "",
-        "image_path": "generated/weeks/20260731-20260806/20260801_2000_KAI-004_three-choice-result-right.png"
-      }
-    ]
-  },
-  {
-    "key": "2026-08-02-morning-kai-005",
-    "post_no": "KAI-005",
-    "date": "2026-08-02",
-    "slot": "morning",
-    "status": "ready",
-    "format": "daily_tarot",
-    "topic": "関係の再評価",
-    "topic_tag": "復縁",
-    "title": "二人の関係を見直すとき",
-    "body": "今日の1枚は「審判」。\n\nこのカードが示すのは、過去をそのまま懐かしむことではなく、一度離れたからこそ二人の関係を違う角度から見直す流れです。\n\n彼の中でも、別れた理由やあなたとの時間が今の視点で再評価されているかもしれません。もし戻るとしても、以前と同じ関係を繰り返すのか、それとも新しい形を選べるのかが焦点になります。\n\n今の二人に必要だと思う変化が浮かんだら、「見直し」と返信してください。",
-    "image_title": "二人の関係を見直すとき",
-    "cta_type": "comment",
-    "cta_word": "見直し",
-    "card_ids": [
-      20
-    ],
-    "image_path": "generated/weeks/20260731-20260806/20260802_0700_KAI-005_empathy.png"
-  },
-  {
-    "key": "2026-08-02-noon-kai-006",
-    "post_no": "KAI-006",
-    "date": "2026-08-02",
-    "slot": "noon",
-    "status": "ready",
-    "format": "daily_tarot",
-    "topic": "連絡前の感情の温度",
-    "topic_tag": "恋愛相談",
-    "title": "連絡する前に見たい今の温度",
-    "body": "日曜日の昼。予定が途切れた瞬間に、彼へ連絡したくなることがあります。\n\n今日の1枚は「節制」。今は勢いを抑え込むより、寂しさと本当に伝えたい気持ちを混ぜ直すタイミングです。\n\nすぐ答えを求める言葉は重くなりやすくても、穏やかな近況なら会話の入口になることがあります。連絡の有無より、どんな温度で言葉を渡せるかが今の流れを分けそうです。",
-    "image_title": "連絡する前に見たい今の温度",
-    "cta_type": "none",
-    "cta_word": "",
-    "card_ids": [
-      14
-    ],
-    "image_path": "generated/weeks/20260731-20260806/20260802_1200_KAI-006_daily-card.png"
-  },
-  {
-    "key": "2026-08-02-evening-kai-007",
-    "post_no": "KAI-007",
-    "date": "2026-08-02",
-    "slot": "evening",
-    "status": "ready",
-    "format": "three_choice",
-    "topic": "今週の関係の兆し",
-    "topic_tag": "復縁",
-    "title": "今週、彼が関係を動かす兆し",
-    "body": "今週、彼から二人の関係を動かす兆しはあるのでしょうか。\n\n表向きのA・B・Cから、最初に目が止まった1枚を選んでください。選んだら「兆し」と返信してください。\n\nそれぞれのカードが示す今週の流れを、返信欄に載せています。",
-    "image_title": "今週、彼が関係を動かす兆し",
-    "cta_type": "comment",
-    "cta_word": "兆し",
-    "card_ids": [
-      47,
-      12,
-      7
-    ],
-    "image_path": "generated/weeks/20260731-20260806/20260802_2000_KAI-007_three-choice.png",
-    "replies": [
-      {
-        "label": "左",
-        "text": "Aを選んだあなたへ｜カップのペイジ\n\n彼の中に、もう一度話してみたいという小さな気持ちが芽生えやすい流れです。大きな決断より、軽い近況や何気ない反応として現れそう。まだ不器用でも、関心が完全に消えた状態ではありません。",
-        "next_action": "",
-        "image_path": "generated/weeks/20260731-20260806/20260802_2000_KAI-007_three-choice-result-left.png"
-      },
-      {
-        "label": "中央",
-        "text": "Bを選んだあなたへ｜吊るされた男\n\n今週は、彼から見える動きが少ないかもしれません。ただ、止まっている間に二人の関係を別の角度から考え直している可能性があります。沈黙は結論ではなく、まだ答えを出せずにいる時間として表れています。",
-        "next_action": "",
-        "image_path": "generated/weeks/20260731-20260806/20260802_2000_KAI-007_three-choice-result-center.png"
-      },
-      {
-        "label": "右",
-        "text": "Cを選んだあなたへ｜戦車\n\n迷いよりも動きが勝ちやすく、連絡や偶然の接点が急に生まれる兆しです。ただし勢いが強いぶん、関係の答えまで一気に求めると話がすれ違うことも。まず会話が戻るかどうかを見る段階です。",
-        "next_action": "",
-        "image_path": "generated/weeks/20260731-20260806/20260802_2000_KAI-007_three-choice-result-right.png"
-      }
-    ]
-  },
-  {
-    "key": "2026-08-03-morning-kai-008",
-    "post_no": "KAI-008",
-    "date": "2026-08-03",
-    "slot": "morning",
-    "status": "ready",
-    "format": "daily_tarot",
-    "topic": "彼が出てくる夢",
-    "topic_tag": "恋愛占い",
-    "title": "彼が夢に出てきた朝",
-    "body": "目が覚めたあとも、夢の中の彼が妙に近く感じる朝があります。\n\n今日の1枚は「カップの6」。懐かしい記憶や、心が安心していた頃へ意識が戻りやすいカードです。\n\n夢が未来を約束するわけではありません。ただ、忘れられないのは彼だけではなく、あの頃の自分や二人の空気なのかもしれません。",
-    "image_title": "彼が夢に出てきた朝",
-    "cta_type": "none",
-    "cta_word": "",
-    "card_ids": [
-      42
-    ],
-    "image_path": "generated/weeks/20260731-20260806/20260803_0700_KAI-008_empathy.png"
-  },
-  {
-    "key": "2026-08-03-noon-kai-009",
-    "post_no": "KAI-009",
-    "date": "2026-08-03",
-    "slot": "noon",
-    "status": "ready",
-    "format": "daily_tarot",
-    "topic": "戻る縁の力",
-    "topic_tag": "復縁占い",
-    "title": "戻る縁と、離れていく縁",
-    "body": "8月8日に向けて、ライオンズゲートという言葉を目にする時期です。\n\n今日の1枚は「力」。縁を引き寄せるのは、強く願い続けることより、揺れる気持ちを静かに受け止める強さだと伝えています。\n\nまだつながる縁なら、無理に追わなくても対話の余地が残ります。離れていく縁なら、執着より先に自分の心を守る感覚が戻ってきます。\n\n8日まで気持ちが揺れたときに読み返せるよう、この投稿を残しておいてください。",
-    "image_title": "戻る縁と、離れていく縁",
-    "cta_type": "save",
-    "cta_word": "",
-    "card_ids": [
-      8
-    ],
-    "image_path": "generated/weeks/20260731-20260806/20260803_1200_KAI-009_daily-card.png",
-    "event": {
-      "name": "ライオンズゲート",
-      "days_left": 5
-    }
-  },
-  {
-    "key": "2026-08-03-evening-kai-010",
-    "post_no": "KAI-010",
-    "date": "2026-08-03",
-    "slot": "evening",
-    "status": "ready",
-    "format": "three_choice",
-    "topic": "音信不通の連絡契機",
-    "topic_tag": "音信不通",
-    "title": "彼が次に連絡するきっかけ",
-    "body": "音信不通の彼が、次に連絡するとしたら何がきっかけになるのでしょうか。\n\n表向きのA・B・Cから、気になる1枚を選んでください。選んだら「きっかけ」と返信してください。\n\n連絡が動きやすい場面と、今の停滞の意味を返信欄で読みます。",
-    "image_title": "彼が次に連絡するきっかけ",
-    "cta_type": "comment",
-    "cta_word": "きっかけ",
-    "card_ids": [
-      1,
-      29,
-      53
-    ],
-    "image_path": "generated/weeks/20260731-20260806/20260803_2000_KAI-010_three-choice.png",
-    "replies": [
-      {
-        "label": "左",
-        "text": "Aを選んだあなたへ｜魔術師\n\n彼の中で「今なら話せる」と思える瞬間がきっかけになりそうです。共通の話題や聞きたいことが浮かび、会話を始める理由ができる流れ。最初の一通は、深い本音より自然な入口になりやすいでしょう。",
-        "next_action": "",
-        "image_path": "generated/weeks/20260731-20260806/20260803_2000_KAI-010_three-choice-result-left.png"
-      },
-      {
-        "label": "中央",
-        "text": "Bを選んだあなたへ｜ワンドの8\n\n予定の変化や偶然目にしたものから、急にあなたを思い出す可能性があります。動き始めると連絡までは早いカードです。ただ、勢いで届く言葉はまだ整理されていないこともあり、連絡の速さと覚悟の深さは分けて見たい流れです。",
-        "next_action": "",
-        "image_path": "generated/weeks/20260731-20260806/20260803_2000_KAI-010_three-choice-result-center.png"
-      },
-      {
-        "label": "右",
-        "text": "Cを選んだあなたへ｜ソードの4\n\n彼はまだ、連絡するより心を休める時間を必要としているようです。きっかけになるのは、問題が完全に解決した時ではなく、少し冷静さを取り戻した時。今の沈黙には、関係を拒むより疲れから距離を置く意味が強く出ています。",
-        "next_action": "",
-        "image_path": "generated/weeks/20260731-20260806/20260803_2000_KAI-010_three-choice-result-right.png"
-      }
-    ]
-  },
-  {
-    "key": "2026-08-04-morning-kai-011",
-    "post_no": "KAI-011",
-    "date": "2026-08-04",
-    "slot": "morning",
-    "status": "ready",
-    "format": "daily_tarot",
-    "topic": "朝に戻る未練",
-    "topic_tag": "復縁",
-    "title": "朝になると彼を思い出す理由",
-    "body": "昨日は平気だったのに、朝になると彼を思い出す。そんな日があります。\n\n今日の1枚は「カップのクイーン」。静かな時間ほど、普段は抑えている感情に気づきやすいことを示します。\n\n気持ちが逆戻りしたのではありません。忘れようとして隠れていた寂しさが、朝の余白に浮かんできただけかもしれません。",
-    "image_title": "朝になると彼を思い出す理由",
-    "cta_type": "none",
-    "cta_word": "",
-    "card_ids": [
-      48
-    ],
-    "image_path": "generated/weeks/20260731-20260806/20260804_0700_KAI-011_empathy.png"
-  },
-  {
-    "key": "2026-08-04-noon-kai-012",
-    "post_no": "KAI-012",
-    "date": "2026-08-04",
-    "slot": "noon",
-    "status": "ready",
-    "format": "daily_tarot",
-    "topic": "関係の負担と釣り合い",
-    "topic_tag": "恋愛相談",
-    "title": "二人の負担は釣り合っている？",
-    "body": "今日の1枚は「正義」。\n\n二人の関係を続けるために、片方だけが我慢したり、連絡や歩み寄りを一方的に背負ったりしていないでしょうか。\n\n正義が映すのは、好きな気持ちの強さだけではなく、与えるものと受け取るものの釣り合いです。復縁を考えるなら、以前と同じ負担へ戻るのではなく、二人とも無理なく向き合える関係かどうかが大切になります。\n\n気持ちが相手中心になったとき、読み返せるよう保存しておいてください。",
-    "image_title": "二人の負担は釣り合っている？",
-    "cta_type": "save",
-    "cta_word": "",
-    "card_ids": [
-      11
-    ],
-    "image_path": "generated/weeks/20260731-20260806/20260804_1200_KAI-012_daily-card.png"
-  },
-  {
     "key": "2026-08-04-evening-kai-013",
     "post_no": "KAI-013",
     "date": "2026-08-04",
@@ -254,35 +13,111 @@
     "image_title": "8月8日までに表面化すること",
     "cta_type": "comment",
     "cta_word": "8",
-    "card_ids": [
-      6,
-      13,
-      38
-    ],
+    "card_ids": [6, 13, 38],
     "image_path": "generated/weeks/20260731-20260806/20260804_2000_KAI-013_three-choice.png",
-    "event": {
-      "name": "ライオンズゲート",
-      "days_left": 4
-    },
+    "event": {"name": "ライオンズゲート", "days_left": 4},
     "replies": [
-      {
-        "label": "左",
-        "text": "Aを選んだあなたへ｜恋人\n\n曖昧だった気持ちや、二人の関係をどうしたいかという選択が表へ出やすい流れです。惹かれ合う気持ちだけでなく、同じ方向を向けるかが焦点になります。言葉と行動が一致しているかが、これからの答えを分けそうです。",
-        "next_action": "",
-        "image_path": "generated/weeks/20260731-20260806/20260804_2000_KAI-013_three-choice-result-left.png"
-      },
-      {
-        "label": "中央",
-        "text": "Bを選んだあなたへ｜死神\n\n続いてきた曖昧な状態に区切りが入りそうです。これは必ずしも関係の終わりではなく、以前と同じ形では続けられないという変化。復縁へ進む場合も、過去の問題をそのままにせず、新しい関係として向き合う必要が出てきます。",
-        "next_action": "",
-        "image_path": "generated/weeks/20260731-20260806/20260804_2000_KAI-013_three-choice-result-center.png"
-      },
-      {
-        "label": "右",
-        "text": "Cを選んだあなたへ｜カップの2\n\n一方的に待つ状態から、気持ちを交わせる可能性が見えてきます。連絡や再会があれば、どちらかだけが答えを求めるより、互いの今を知る会話になりそうです。小さくても対等なやり取りが、関係を戻す入口になります。",
-        "next_action": "",
-        "image_path": "generated/weeks/20260731-20260806/20260804_2000_KAI-013_three-choice-result-right.png"
-      }
+      {"label": "左", "text": "Aを選んだあなたへ｜恋人\n\n曖昧だった気持ちや、二人の関係をどうしたいかという選択が表へ出やすい流れです。惹かれ合う気持ちだけでなく、同じ方向を向けるかが焦点になります。言葉と行動が一致しているかが、これからの答えを分けそうです。", "next_action": "", "image_path": "generated/weeks/20260731-20260806/20260804_2000_KAI-013_three-choice-result-left.png"},
+      {"label": "中央", "text": "Bを選んだあなたへ｜死神\n\n続いてきた曖昧な状態に区切りが入りそうです。これは必ずしも関係の終わりではなく、以前と同じ形では続けられないという変化。復縁へ進む場合も、過去の問題をそのままにせず、新しい関係として向き合う必要が出てきます。", "next_action": "", "image_path": "generated/weeks/20260731-20260806/20260804_2000_KAI-013_three-choice-result-center.png"},
+      {"label": "右", "text": "Cを選んだあなたへ｜カップの2\n\n一方的に待つ状態から、気持ちを交わせる可能性が見えてきます。連絡や再会があれば、どちらかだけが答えを求めるより、互いの今を知る会話になりそうです。小さくても対等なやり取りが、関係を戻す入口になります。", "next_action": "", "image_path": "generated/weeks/20260731-20260806/20260804_2000_KAI-013_three-choice-result-right.png"}
+    ]
+  },
+  {
+    "key": "2026-08-05-morning-kai-014", "post_no": "KAI-014", "date": "2026-08-05", "slot": "morning", "status": "ready", "format": "daily_tarot", "topic": "朝に隠せない喪失感", "topic_tag": "復縁", "title": "朝は平気なふりができない", "body": "夜は何とか気持ちを紛らわせても、目が覚めた瞬間に別れた現実が戻ってくる朝があります。\n\n今日の1枚は「カップの5」。失ったものへ意識が向き、まだ残っているものが見えにくくなるカードです。\n\n朝に苦しくなるのは、前へ進めていないからではありません。静かな時間に、隠していた寂しさがそのまま現れているだけかもしれません。", "image_title": "朝は平気なふりができない", "cta_type": "none", "cta_word": "", "image_path": "generated/weeks/20260805-20260811/20260805_0700_KAI-014_empathy.png"
+  },
+  {
+    "key": "2026-08-05-noon-kai-015", "post_no": "KAI-015", "date": "2026-08-05", "slot": "noon", "status": "ready", "format": "poll", "topic": "音信不通で苦しい理由", "topic_tag": "音信不通", "title": "苦しいのは「返事がない」「理由が分からない」どっち？", "body": "返事が来ないことそのものが苦しい人もいれば、なぜ離れたのか分からないままなのが苦しい人もいます。\n\n今の気持ちに近い方を教えてください。\nA：返事がない\nB：理由が分からない", "image_title": "苦しいのは「返事がない」「理由が分からない」どっち？", "cta_type": "comment", "cta_word": "A/B", "image_path": "generated/weeks/20260805-20260811/20260805_1200_KAI-015_ab-poll.png"
+  },
+  {
+    "key": "2026-08-05-evening-kai-016", "post_no": "KAI-016", "date": "2026-08-05", "slot": "evening", "status": "ready", "format": "three_choice", "topic": "彼が言えずにいること", "topic_tag": "復縁占い", "title": "今、彼があなたに言えずにいること", "body": "連絡がない時間にも、彼の中に言葉になっていない気持ちはあるのでしょうか。\n\nA・B・Cから、今いちばん気になる1枚を選んでください。選んだら「言葉」と返信してください。\n\n彼が隠していること、迷っていること、抑えている本音を返信欄で読みます。", "image_title": "今、彼があなたに言えずにいること", "cta_type": "comment", "cta_word": "言葉", "image_path": "generated/weeks/20260805-20260811/20260805_2000_KAI-016_three-choice.png",
+    "replies": [
+      {"label": "左", "text": "Aを選んだあなたへ｜女教皇\n\n彼は、気持ちがないから黙っているのではなく、簡単に言葉へできないことを抱えていそうです。あなたに知られたくない弱さや、まだ自分でも整理できない本音があるのかもしれません。今見える沈黙だけで、答えを決めない方がよい流れです。", "next_action": "", "image_path": "generated/weeks/20260805-20260811/20260805_2000_KAI-016_three-choice-result-left.png"},
+      {"label": "中央", "text": "Bを選んだあなたへ｜ソードの2\n\n話したい気持ちと、話せば関係が動いてしまう怖さの間で止まっています。彼が言えずにいるのは、どちらを選んでも誰かが傷つくという迷いかもしれません。今は結論より、迷いそのものが彼の本音に近そうです。", "next_action": "", "image_path": "generated/weeks/20260805-20260811/20260805_2000_KAI-016_three-choice-result-center.png"},
+      {"label": "右", "text": "Cを選んだあなたへ｜カップのキング\n\nあなたへの感情はあっても、それを見せると自分を保てなくなると考えていそうです。冷静に振る舞うほど、内側では気持ちを抑えている可能性があります。ただし、思いがあることと関係を戻す決断は、まだ別の段階です。", "next_action": "", "image_path": "generated/weeks/20260805-20260811/20260805_2000_KAI-016_three-choice-result-right.png"}
+    ]
+  },
+  {
+    "key": "2026-08-06-morning-kai-017", "post_no": "KAI-017", "date": "2026-08-06", "slot": "morning", "status": "ready", "format": "daily_tarot", "topic": "待つことをやめられない朝", "topic_tag": "復縁", "title": "諦めたいのに、まだ待ってしまう朝", "body": "もう期待しないと決めたのに、朝になるとスマホを確認してしまう。そんな自分を責めたくなる日があります。\n\n今日の1枚は「吊るされた男」。動けない時間の中で、これまでとは違う見方が生まれるカードです。\n\n待ってしまう気持ちを無理に消すより、その間に何を失い、何を守りたいのかが少しずつ見えてくるかもしれません。", "image_title": "諦めたいのに、まだ待ってしまう朝", "cta_type": "none", "cta_word": "", "image_path": "generated/weeks/20260805-20260811/20260806_0700_KAI-017_daily-card.png"
+  },
+  {
+    "key": "2026-08-06-noon-kai-018", "post_no": "KAI-018", "date": "2026-08-06", "slot": "noon", "status": "ready", "format": "daily_tarot", "topic": "連絡前に最後の会話を確認", "topic_tag": "恋愛相談", "title": "連絡する前に確認したい「最後の会話」", "body": "今日の1枚は「正義」。\n\n連絡したい気持ちが強いと、最後の会話で何が起きたかより、今すぐ返事が欲しい気持ちが先に出ることがあります。\n\n最後に彼が言ったこと、自分が伝え切れなかったこと、同じ話題で何度もすれ違っていなかったか。送る前に一度見直すと、連絡の目的が「不安を消すため」なのか「会話を戻すため」なのかが見えやすくなります。\n\n衝動的に送りたくなったとき、見返せるよう保存しておいてください。", "image_title": "連絡する前に確認したい「最後の会話」", "cta_type": "save", "cta_word": "", "image_path": "generated/weeks/20260805-20260811/20260806_1200_KAI-018_daily-card.png"
+  },
+  {
+    "key": "2026-08-06-evening-kai-019", "post_no": "KAI-019", "date": "2026-08-06", "slot": "evening", "status": "ready", "format": "three_choice", "topic": "停滞を終わらせる契機", "topic_tag": "恋愛占い", "title": "二人の停滞を終わらせるきっかけ", "body": "止まったままに見える二人の関係は、何をきっかけに動き始めるのでしょうか。\n\nA・B・Cから、直感で1枚選んでください。選んだら「きっかけ」と返信してください。\n\n自然な転換、避けられない変化、新しい始まりのどれが近いかを返信欄で読みます。", "image_title": "二人の停滞を終わらせるきっかけ", "cta_type": "comment", "cta_word": "きっかけ", "image_path": "generated/weeks/20260805-20260811/20260806_2000_KAI-019_three-choice.png",
+    "replies": [
+      {"label": "左", "text": "Aを選んだあなたへ｜運命の輪\n\n予定の変化や共通の出来事など、二人が意図していなかった流れが接点を作りそうです。無理に動かすより、会話できる機会が巡ったときに自然に乗れるかが大切。停滞はずっと同じ形では続きません。", "next_action": "", "image_path": "generated/weeks/20260805-20260811/20260806_2000_KAI-019_three-choice-result-left.png"},
+      {"label": "中央", "text": "Bを選んだあなたへ｜塔\n\n避けてきた問題や隠していた感情が表に出ることが、停滞を終わらせるきっかけになりそうです。穏やかな変化ではなくても、曖昧なまま続く状態は崩れます。その後に本当に残るものが、二人の次の形を決めます。", "next_action": "", "image_path": "generated/weeks/20260805-20260811/20260806_2000_KAI-019_three-choice-result-center.png"},
+      {"label": "右", "text": "Cを選んだあなたへ｜ワンドのエース\n\nどちらかに「もう一度話したい」という純粋な勢いが戻ることで動き始めそうです。長い説明より、短い連絡や新しい話題が入口になる流れ。ただし、過去の続きではなく新しい関係を始める意識が必要です。", "next_action": "", "image_path": "generated/weeks/20260805-20260811/20260806_2000_KAI-019_three-choice-result-right.png"}
+    ]
+  },
+  {
+    "key": "2026-08-07-morning-kai-020", "post_no": "KAI-020", "date": "2026-08-07", "slot": "morning", "status": "ready", "format": "daily_tarot", "topic": "季節と残る記憶", "topic_tag": "復縁", "title": "季節が変わっても気持ちは変わらない", "body": "空気や光が少しずつ変わっても、彼を思う気持ちだけは同じ場所に残っているように感じることがあります。\n\n今日の1枚は「カップの6」。過去の優しい記憶が、今の心へ戻ってくるカードです。\n\n忘れられないことと、同じ関係へ戻ることは別です。思い出の中で本当に恋しいものが彼なのか、あの頃の安心感なのか、少しずつ輪郭が見えてきそうです。", "image_title": "季節が変わっても気持ちは変わらない", "cta_type": "none", "cta_word": "", "image_path": "generated/weeks/20260805-20260811/20260807_0700_KAI-020_empathy.png"
+  },
+  {
+    "key": "2026-08-07-noon-kai-021", "post_no": "KAI-021", "date": "2026-08-07", "slot": "noon", "status": "ready", "format": "poll", "topic": "彼のSNSとの距離", "topic_tag": "恋愛相談", "title": "彼のSNS、見てしまう？見ないようにしてる？", "body": "彼の今を知りたくて見てしまう人も、見た後につらくなるから避けている人もいます。\n\n今のあなたに近い方はどちらですか？\nA：見てしまう\nB：見ないようにしてる", "image_title": "彼のSNS、見てしまう？見ないようにしてる？", "cta_type": "comment", "cta_word": "A/B", "image_path": "generated/weeks/20260805-20260811/20260807_1200_KAI-021_ab-poll.png"
+  },
+  {
+    "key": "2026-08-07-evening-kai-022", "post_no": "KAI-022", "date": "2026-08-07", "slot": "evening", "status": "ready", "format": "three_choice", "topic": "彼の中の気持ちの変化", "topic_tag": "復縁占い", "title": "彼の中で変わり始めている気持ち", "body": "見えないところで、彼の気持ちはどのように変わり始めているのでしょうか。\n\nA・B・Cから、最初に目が止まった1枚を選んでください。選んだら「変化」と返信してください。\n\n終わらせる変化、整える変化、希望へ向かう変化を返信欄で読みます。", "image_title": "彼の中で変わり始めている気持ち", "cta_type": "comment", "cta_word": "変化", "image_path": "generated/weeks/20260805-20260811/20260807_2000_KAI-022_three-choice.png",
+    "replies": [
+      {"label": "左", "text": "Aを選んだあなたへ｜死神\n\n彼は、以前と同じ関係のまま戻ることはできないと感じ始めています。これは気持ちが消える変化とは限りません。過去の問題や役割を終わらせ、新しい関係として向き合えるかを考える段階へ移っているようです。", "next_action": "", "image_path": "generated/weeks/20260805-20260811/20260807_2000_KAI-022_three-choice-result-left.png"},
+      {"label": "中央", "text": "Bを選んだあなたへ｜節制\n\n強い感情に振り回される状態から、少しずつ落ち着いて二人のことを考えられるようになっています。すぐに連絡へ動くより、傷ついた気持ちと残っている好意を混ぜ直している流れ。穏やかな会話なら受け止めやすくなりそうです。", "next_action": "", "image_path": "generated/weeks/20260805-20260811/20260807_2000_KAI-022_three-choice-result-center.png"},
+      {"label": "右", "text": "Cを選んだあなたへ｜星\n\n二人の関係を完全に諦めるより、いつか話せるかもしれないという希望が戻り始めています。ただし、今すぐ元通りになる期待ではなく、時間をかければ違う形が見えるという静かな希望です。", "next_action": "", "image_path": "generated/weeks/20260805-20260811/20260807_2000_KAI-022_three-choice-result-right.png"}
+    ]
+  },
+  {
+    "key": "2026-08-08-morning-kai-023", "post_no": "KAI-023", "date": "2026-08-08", "slot": "morning", "status": "ready", "format": "daily_tarot", "topic": "8月8日に決めること", "topic_tag": "復縁", "title": "8月8日、願う前に決めたいこと", "body": "8月8日を特別な日として願いをかけたくなる人もいるかもしれません。\n\n今日の1枚は「力」。このカードが示すのは、相手を動かす強さではなく、自分の不安や衝動を扱う静かな強さです。\n\n「彼に戻ってきてほしい」と願う前に、戻った二人がどんな関係でありたいのかを決める。願いを現実へ近づけるなら、そこが最初の一歩になります。\n\n気持ちが揺れたときに戻れるよう、今日の決意と一緒に保存しておいてください。", "image_title": "8月8日、願う前に決めたいこと", "cta_type": "save", "cta_word": "", "image_path": "generated/weeks/20260805-20260811/20260808_0700_KAI-023_daily-card.png", "event": {"name": "ライオンズゲート", "days_left": 0}
+  },
+  {
+    "key": "2026-08-08-noon-kai-024", "post_no": "KAI-024", "date": "2026-08-08", "slot": "noon", "status": "ready", "format": "daily_tarot", "topic": "特別な日に強まる期待", "topic_tag": "恋愛相談", "title": "特別な日ほど、連絡を期待してしまう", "body": "何かが起こりそうな日ほど、通知が来るたびに彼ではないかと期待してしまいます。\n\n今日の1枚は「月」。希望と不安が混ざると、まだ起きていないことまで大きく感じやすいカードです。\n\n今日連絡があるかどうかだけで、二人の縁すべてが決まるわけではありません。期待してしまう自分を責めず、見えている事実と想像を分けて受け止めたい日です。", "image_title": "特別な日ほど、連絡を期待してしまう", "cta_type": "none", "cta_word": "", "image_path": "generated/weeks/20260805-20260811/20260808_1200_KAI-024_empathy.png", "event": {"name": "ライオンズゲート", "days_left": 0}
+  },
+  {
+    "key": "2026-08-08-evening-kai-025", "post_no": "KAI-025", "date": "2026-08-08", "slot": "evening", "status": "ready", "format": "three_choice", "topic": "8月8日からの二人の流れ", "topic_tag": "タロット占い", "title": "8月8日から動き始める二人の流れ", "body": "8月8日を境に、二人の間ではどんな流れが動き始めるのでしょうか。\n\nA・B・Cから、直感で1枚選んでください。選んだら「8」と返信してください。\n\n見直し、選択、心が通う流れのどれが近いかを返信欄で読みます。", "image_title": "8月8日から動き始める二人の流れ", "cta_type": "comment", "cta_word": "8", "image_path": "generated/weeks/20260805-20260811/20260808_2000_KAI-025_three-choice.png", "event": {"name": "ライオンズゲート", "days_left": 0},
+    "replies": [
+      {"label": "左", "text": "Aを選んだあなたへ｜審判\n\n過去の関係を今の視点で見直す流れが始まりそうです。懐かしさだけで戻るのではなく、別れた理由や互いの変化を含めて再評価する段階。止まっていた会話が戻るなら、以前とは違う答えを選べる可能性があります。", "next_action": "", "image_path": "generated/weeks/20260805-20260811/20260808_2000_KAI-025_three-choice-result-left.png"},
+      {"label": "中央", "text": "Bを選んだあなたへ｜恋人\n\n惹かれ合う気持ちだけでなく、二人が同じ方向を選べるかが動き始めます。連絡や再会があれば、曖昧な関係を続けるのか、きちんと向き合うのかという選択が表に出そうです。", "next_action": "", "image_path": "generated/weeks/20260805-20260811/20260808_2000_KAI-025_three-choice-result-center.png"},
+      {"label": "右", "text": "Cを選んだあなたへ｜カップの2\n\n一方的に待つ状態から、気持ちを交わせる流れへ近づきます。大きな告白より、互いの近況を知る小さな会話が入口になりそうです。対等なやり取りが続くかが、復縁へ進む鍵になります。", "next_action": "", "image_path": "generated/weeks/20260805-20260811/20260808_2000_KAI-025_three-choice-result-right.png"}
+    ]
+  },
+  {
+    "key": "2026-08-09-morning-kai-026", "post_no": "KAI-026", "date": "2026-08-09", "slot": "morning", "status": "ready", "format": "daily_tarot", "topic": "特別な日に何もなかった後", "topic_tag": "復縁", "title": "昨日何も起きなかったあなたへ", "body": "期待していた日が何もないまま終わると、自分だけが取り残されたように感じることがあります。\n\n今日の1枚は「隠者」。外で起きた出来事の数ではなく、自分の中にある本当の答えを静かに探すカードです。\n\n昨日連絡がなかったことは、あなたの願いに価値がないという意味ではありません。特別な日の結果から少し離れると、これから何を大切にしたいかが見えやすくなります。", "image_title": "昨日何も起きなかったあなたへ", "cta_type": "none", "cta_word": "", "image_path": "generated/weeks/20260805-20260811/20260809_0700_KAI-026_empathy.png"
+  },
+  {
+    "key": "2026-08-09-noon-kai-027", "post_no": "KAI-027", "date": "2026-08-09", "slot": "noon", "status": "ready", "format": "poll", "topic": "復縁したい理由", "topic_tag": "復縁", "title": "復縁したい理由は「彼が好き」「後悔が残る」どっち？", "body": "彼だからもう一度一緒にいたい気持ちと、やり直せなかったことへの後悔。似ているようで、心の向いている先は少し違います。\n\n今のあなたに近い方はどちらですか？\nA：彼が好き\nB：後悔が残る", "image_title": "復縁したい理由は「彼が好き」「後悔が残る」どっち？", "cta_type": "comment", "cta_word": "A/B", "image_path": "generated/weeks/20260805-20260811/20260809_1200_KAI-027_ab-poll.png"
+  },
+  {
+    "key": "2026-08-09-evening-kai-028", "post_no": "KAI-028", "date": "2026-08-09", "slot": "evening", "status": "ready", "format": "three_choice", "topic": "彼が思い出す瞬間", "topic_tag": "復縁占い", "title": "次に彼があなたを思い出す瞬間", "body": "彼は次に、どんな瞬間にあなたとの時間を思い出すのでしょうか。\n\nA・B・Cから、気になる1枚を選んでください。選んだら「瞬間」と返信してください。\n\n感情が動く時、急な出来事、明るい記憶のどれが近いかを返信欄で読みます。", "image_title": "次に彼があなたを思い出す瞬間", "cta_type": "comment", "cta_word": "瞬間", "image_path": "generated/weeks/20260805-20260811/20260809_2000_KAI-028_three-choice.png",
+    "replies": [
+      {"label": "左", "text": "Aを選んだあなたへ｜カップのペイジ\n\n素直な気持ちに触れた時、あなたの優しさや二人の何気ない会話を思い出しそうです。誰かの言葉や音楽など、小さなきっかけで感情が戻る流れ。まだ形にならなくても、話してみたい気持ちが芽生える可能性があります。", "next_action": "", "image_path": "generated/weeks/20260805-20260811/20260809_2000_KAI-028_three-choice-result-left.png"},
+      {"label": "中央", "text": "Bを選んだあなたへ｜ワンドの8\n\n予定が急に変わった時や、移動中に共通の場所を目にした瞬間、あなたの記憶が一気に戻りそうです。思い出してから連絡までが早い可能性もありますが、その勢いと関係を戻す覚悟は分けて見たい流れです。", "next_action": "", "image_path": "generated/weeks/20260805-20260811/20260809_2000_KAI-028_three-choice-result-center.png"},
+      {"label": "右", "text": "Cを選んだあなたへ｜太陽\n\n楽しかった出来事や、あなたと自然に笑えた時間に似た場面で思い出しそうです。後悔よりも明るい記憶として浮かぶため、彼の中で二人の関係を否定せずに振り返れる瞬間になりそうです。", "next_action": "", "image_path": "generated/weeks/20260805-20260811/20260809_2000_KAI-028_three-choice-result-right.png"}
+    ]
+  },
+  {
+    "key": "2026-08-10-morning-kai-029", "post_no": "KAI-029", "date": "2026-08-10", "slot": "morning", "status": "ready", "format": "daily_tarot", "topic": "休日に戻る二人の記憶", "topic_tag": "復縁", "title": "休日の朝、二人だった時間を思い出す", "body": "予定のない休日の朝は、二人で過ごした時間の空気まで思い出してしまうことがあります。\n\n今日の1枚は「カップのクイーン」。言葉にしなくても大切にしていた感情が、静かな時間に浮かぶカードです。\n\n思い出すのは弱さではありません。今も心に残る優しさと、当時は我慢していたことの両方を受け止める朝になりそうです。", "image_title": "休日の朝、二人だった時間を思い出す", "cta_type": "none", "cta_word": "", "image_path": "generated/weeks/20260805-20260811/20260810_0700_KAI-029_daily-card.png"
+  },
+  {
+    "key": "2026-08-10-noon-kai-030", "post_no": "KAI-030", "date": "2026-08-10", "slot": "noon", "status": "ready", "format": "daily_tarot", "topic": "同じ問題を繰り返さない判断", "topic_tag": "恋愛相談", "title": "戻れたら、本当に同じ問題は起きない？", "body": "今日の1枚は「皇帝」。\n\n復縁できるかだけを考えていると、戻った後の二人のルールや責任が見えにくくなります。\n\n連絡の頻度、約束の扱い、感情的になった時の向き合い方。以前と同じ問題を防ぐには、気持ちだけでなく関係を支える現実的な土台が必要です。\n\n戻ることより、戻った後を考えたくなった時に読み返せるよう保存しておいてください。", "image_title": "戻れたら、本当に同じ問題は起きない？", "cta_type": "save", "cta_word": "", "image_path": "generated/weeks/20260805-20260811/20260810_1200_KAI-030_daily-card.png"
+  },
+  {
+    "key": "2026-08-10-evening-kai-031", "post_no": "KAI-031", "date": "2026-08-10", "slot": "evening", "status": "ready", "format": "three_choice", "topic": "彼から見える次のサイン", "topic_tag": "恋愛占い", "title": "彼から次に見せてくるサイン", "body": "彼の気持ちが動く時、次にどんなサインとして表れるのでしょうか。\n\nA・B・Cから、直感で1枚選んでください。選んだら「サイン」と返信してください。\n\n会話の入口、遠くからの確認、はっきりした行動を返信欄で読みます。", "image_title": "彼から次に見せてくるサイン", "cta_type": "comment", "cta_word": "サイン", "image_path": "generated/weeks/20260805-20260811/20260810_2000_KAI-031_three-choice.png",
+    "replies": [
+      {"label": "左", "text": "Aを選んだあなたへ｜魔術師\n\n共通の話題や軽い質問など、会話を始める理由を作ってきそうです。最初から深い本音を語るより、自然に言葉を交わせるか試すようなサイン。小さくても、彼の方から接点を作る動きに注目したい流れです。", "next_action": "", "image_path": "generated/weeks/20260805-20260811/20260810_2000_KAI-031_three-choice-result-left.png"},
+      {"label": "中央", "text": "Bを選んだあなたへ｜ソードのペイジ\n\n直接連絡する前に、SNSや共通の知人を通してあなたの今を確かめるような動きが出そうです。関心はあっても警戒心が残り、まず情報を集めたい状態。見ていること自体より、その後に会話へ進むかを見たいサインです。", "next_action": "", "image_path": "generated/weeks/20260805-20260811/20260810_2000_KAI-031_three-choice-result-center.png"},
+      {"label": "右", "text": "Cを選んだあなたへ｜戦車\n\n迷いを越えて、連絡や再会の提案など分かりやすい行動を見せてきそうです。動き始めると早い一方で、勢いが先に立つ可能性もあります。サインの強さだけでなく、行動が続くかどうかが重要です。", "next_action": "", "image_path": "generated/weeks/20260805-20260811/20260810_2000_KAI-031_three-choice-result-right.png"}
+    ]
+  },
+  {
+    "key": "2026-08-11-morning-kai-032", "post_no": "KAI-032", "date": "2026-08-11", "slot": "morning", "status": "ready", "format": "daily_tarot", "topic": "休日に強まる連絡待ち", "topic_tag": "音信不通", "title": "休みの日ほど連絡を待ってしまう", "body": "仕事がある日は考えずにいられても、休みの日は通知のない時間が長く感じることがあります。\n\n今日の1枚は「ソードの4」。答えを出すためではなく、考え続けて疲れた心を一度休ませるカードです。\n\n待たないと決める必要はありません。ただ、今日一日すべてを連絡待ちにしないことが、あなたの心を守る余白になります。", "image_title": "休みの日ほど連絡を待ってしまう", "cta_type": "none", "cta_word": "", "image_path": "generated/weeks/20260805-20260811/20260811_0700_KAI-032_empathy.png"
+  },
+  {
+    "key": "2026-08-11-noon-kai-033", "post_no": "KAI-033", "date": "2026-08-11", "slot": "noon", "status": "ready", "format": "poll", "topic": "今ほしいもの", "topic_tag": "恋愛相談", "title": "今欲しいのは「連絡」「はっきりした答え」どっち？", "body": "まず一言でもつながりたい人と、曖昧なままではなく関係の答えを知りたい人。今いちばん欲しいものはどちらですか？\n\nA：連絡\nB：はっきりした答え", "image_title": "今欲しいのは「連絡」「はっきりした答え」どっち？", "cta_type": "comment", "cta_word": "A/B", "image_path": "generated/weeks/20260805-20260811/20260811_1200_KAI-033_ab-poll.png"
+  },
+  {
+    "key": "2026-08-11-evening-kai-034", "post_no": "KAI-034", "date": "2026-08-11", "slot": "evening", "status": "ready", "format": "three_choice", "topic": "お盆前の二人の距離", "topic_tag": "復縁占い", "title": "お盆前、二人の距離はどう変わる？", "body": "予定や人の動きが変わるお盆前、二人の距離にはどんな変化があるのでしょうか。\n\nA・B・Cから、今いちばん気になる1枚を選んでください。選んだら「距離」と返信してください。\n\n一区切り、新しい一歩、安心できる関係の可能性を返信欄で読みます。", "image_title": "お盆前、二人の距離はどう変わる？", "cta_type": "comment", "cta_word": "距離", "image_path": "generated/weeks/20260805-20260811/20260811_2000_KAI-034_three-choice.png",
+    "replies": [
+      {"label": "左", "text": "Aを選んだあなたへ｜世界\n\n中途半端だった関係に、一つの答えが見えやすい流れです。再びつながる場合も、離れる場合も、曖昧なままより納得できる形へ近づきそう。過去の続きではなく、一度区切った上で次を選ぶ距離感になります。", "next_action": "", "image_path": "generated/weeks/20260805-20260811/20260811_2000_KAI-034_three-choice-result-left.png"},
+      {"label": "中央", "text": "Bを選んだあなたへ｜愚者\n\n決めつけていた関係から少し離れ、軽い連絡や偶然の再会から新しい一歩が始まりそうです。すぐに復縁という形へ当てはめず、今の二人として話せるか試すことで距離が変わります。", "next_action": "", "image_path": "generated/weeks/20260805-20260811/20260811_2000_KAI-034_three-choice-result-center.png"},
+      {"label": "右", "text": "Cを選んだあなたへ｜カップの10\n\n互いに安心できる関係へ近づく可能性があります。家族や休日の話題など、将来や居場所を意識する会話が距離を縮めそうです。ただ戻るだけでなく、二人が穏やかに続けられる形を考える流れです。", "next_action": "", "image_path": "generated/weeks/20260805-20260811/20260811_2000_KAI-034_three-choice-result-right.png"}
     ]
   }
 ]

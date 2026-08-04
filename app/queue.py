@@ -67,7 +67,9 @@ def _validate(item):
             + ",".join(str(value) for value in unknown_card_ids)
         )
     if item["format"] == "three_choice":
-        if len(card_ids) != 3 or len(set(card_ids)) != 3:
+        if not has_prebuilt_image and (
+            len(card_ids) != 3 or len(set(card_ids)) != 3
+        ):
             raise ValueError("3択投稿には異なるカードIDが3枚必要です")
         replies = item.get("replies", [])
         if len(replies) != 3:

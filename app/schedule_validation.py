@@ -6,107 +6,99 @@ from pathlib import Path
 from PIL import Image
 
 
-PERIOD_START = ("2026-08-02", "morning")
-PERIOD_END = ("2026-08-04", "evening")
-WEEK_FOLDER = Path("generated/weeks/20260731-20260806")
+NEW_WEEK = Path("generated/weeks/20260805-20260811")
+OLD_WEEK = Path("generated/weeks/20260731-20260806")
 SLOT_TIME = {"morning": "0700", "noon": "1200", "evening": "2000"}
-
-
-def is_target(item):
-    value = (item.get("date", ""), item.get("slot", ""))
-    order = {"morning": 0, "noon": 1, "evening": 2}
-    start = (PERIOD_START[0], order[PERIOD_START[1]])
-    end = (PERIOD_END[0], order[PERIOD_END[1]])
-    current = (value[0], order.get(value[1], -1))
-    return start <= current <= end
 
 
 def validate_schedule(queue_path="data/content_queue.json"):
     queue = json.loads(Path(queue_path).read_text(encoding="utf-8"))
-    posts = [item for item in queue if is_target(item) and item.get("status") == "ready"]
     errors = []
     results = []
-    if len(posts) != 9:
-        errors.append(f"対象期間のready投稿が9件ではありません: {len(posts)}")
-    expected = [f"KAI-{index:03d}" for index in range(5, 14)]
-    actual = [item.get("post_no") for item in posts]
+    expected = ["KAI-013"] + [f"KAI-{n:03d}" for n in range(14, 35)]
+    actual = [item.get("post_no") for item in queue]
     if actual != expected:
-        errors.append(f"投稿番号または日時順が不正です: {actual}")
-    paths = [item.get("image_path") for item in posts]
-    duplicates = {path for path, count in Counter(paths).items() if count > 1}
-    if duplicates:
-        errors.append(f"親画像が複数投稿で重複しています: {sorted(duplicates)}")
-    for item in posts:
+        errors.append(f"投稿順がKAI-013〜034ではありません: {actual}")
+    if len(queue) != 22:
+        errors.append(f"予約件数が22件ではありません: {len(queue)}")
+    if sum(1 for x in queue if x.get("post_no") == "KAI-013") != 1:
+        errors.append("今夜分KAI-013が1件ではありません")
+    slots = [(x.get("date"), x.get("slot")) for x in queue]
+    if len(slots) != len(set(slots)):
+        errors.append("同じ日時枠に複数の予約があります")
+
+    referenced = []
+    for item in queue:
         item_errors = []
-        path_text = item.get("image_path", "")
-        path = Path(path_text)
-        expected_prefix = (
-            f"{item['date'].replace('-', '')}_{SLOT_TIME[item['slot']]}_"
-            f"{item['post_no']}_"
-        )
-        if path.parent != WEEK_FOLDER:
-            item_errors.append("今回専用フォルダ以外を参照")
-        if not path.name.startswith(expected_prefix):
-            item_errors.append("日時・番号と画像ファイル名が不一致")
-        if not re.fullmatch(r"[A-Za-z0-9_.\-/]+", path_text):
-            item_errors.append("画像パスに許可外文字")
-        matches = list(path.parent.glob(path.name)) if path.name else []
-        if len(matches) != 1:
-            item_errors.append(f"指定親画像の存在数が1件ではない: {len(matches)}")
-        elif matches[0].is_file():
-            with Image.open(matches[0]) as image:
-                image.load()
-                expected_sizes = (
-                    {(1080, 608), (1080, 1350)}
-                    if item.get("format") == "three_choice"
-                    else {(1080, 1350)}
-                )
-                if image.size not in expected_sizes:
-                    item_errors.append(
-                        f"親画像サイズ不正: {image.size}"
-                    )
-        card_ids = item.get("card_ids", [])
-        replies = item.get("replies", [])
-        if item["format"] == "three_choice":
-            if len(card_ids) != 3 or len(set(card_ids)) != 3:
-                item_errors.append("3択カードが3枚の異なるカードではない")
-            if [reply.get("label") for reply in replies] != ["左", "中央", "右"]:
-                item_errors.append("3択返信の順番が左・中央・右ではない")
-        if item["format"] == "ab_choice":
-            if len(card_ids) != 2 or len(set(card_ids)) != 2:
-                item_errors.append("A/Bカードが2枚の異なるカードではない")
-            if [reply.get("label") for reply in replies] != ["A", "B"]:
-                item_errors.append("A/B返信の順番がA・Bではない")
-        for reply in replies:
-            reply_path = Path(reply.get("image_path", ""))
-            if reply_path.parent != WEEK_FOLDER:
-                item_errors.append(f"返信{reply.get('label')}が専用フォルダ以外を参照")
-            reply_matches = list(reply_path.parent.glob(reply_path.name)) if reply_path.name else []
-            if len(reply_matches) != 1:
-                item_errors.append(
-                    f"返信{reply.get('label')}画像の存在数が1件ではない: {len(reply_matches)}"
-                )
-            elif reply_matches[0].is_file():
-                with Image.open(reply_matches[0]) as image:
+        post_no = item.get("post_no", "")
+        path = Path(item.get("image_path", ""))
+        expected_folder = OLD_WEEK if post_no == "KAI-013" else NEW_WEEK
+        if path.parent != expected_folder:
+            item_errors.append("image_pathが対象generatedフォルダではありません")
+        if post_no != "KAI-013":
+            prefix = f"{item['date'].replace('-', '')}_{SLOT_TIME[item['slot']]}_{post_no}_"
+            if not path.name.startswith(prefix):
+                item_errors.append("日時・投稿番号と画像ファイル名が不一致")
+            if "card_ids" in item:
+                item_errors.append("新規投稿にcard_idsが混入しています")
+        if not re.fullmatch(r"[A-Za-z0-9_.\-/]+", str(path)):
+            item_errors.append("image_pathに許可外文字があります")
+        if not path.is_file():
+            item_errors.append("親画像が存在しません")
+        else:
+            try:
+                with Image.open(path) as image:
                     image.load()
-                    if image.size != (1080, 1350):
-                        item_errors.append(
-                            f"返信{reply.get('label')}画像サイズ不正: {image.size}"
-                        )
+                    expected_sizes = {(1080, 608)} if item.get("format") == "three_choice" else {(1080, 1350)}
+                    if image.size not in expected_sizes:
+                        item_errors.append(f"親画像サイズ不正: {image.size}")
+            except Exception as exc:
+                item_errors.append(f"親画像破損: {exc}")
+        referenced.append(str(path))
+
+        replies = item.get("replies", [])
+        if item.get("format") == "three_choice":
+            if [r.get("label") for r in replies] != ["左", "中央", "右"]:
+                item_errors.append("3択返信が左・中央・右の3件ではありません")
+            for reply in replies:
+                rp = Path(reply.get("image_path", ""))
+                if rp.parent != expected_folder:
+                    item_errors.append(f"返信{reply.get('label')}のフォルダが不正です")
+                if not rp.is_file():
+                    item_errors.append(f"返信{reply.get('label')}画像が存在しません")
+                else:
+                    try:
+                        with Image.open(rp) as image:
+                            image.load()
+                            if image.size != (1080, 1350):
+                                item_errors.append(f"返信{reply.get('label')}画像サイズ不正: {image.size}")
+                    except Exception as exc:
+                        item_errors.append(f"返信{reply.get('label')}画像破損: {exc}")
+                referenced.append(str(rp))
+        elif replies:
+            item_errors.append("3択以外に返信画像データがあります")
+
         if item.get("image_title") != item.get("title"):
-            item_errors.append("投稿本文の管理タイトルと画像タイトルが不一致")
-        if not item.get("topic") or not item.get("body"):
-            item_errors.append("テーマまたは投稿本文が空")
-        results.append({
-            "post_no": item.get("post_no"),
-            "date": item.get("date"),
-            "slot": item.get("slot"),
-            "image_path": path_text,
-            "passed": not item_errors,
-            "errors": item_errors,
-        })
-        errors.extend(f"{item.get('post_no')}: {error}" for error in item_errors)
-    return {"passed": not errors, "post_count": len(posts), "errors": errors, "results": results}
+            item_errors.append("titleとimage_titleが不一致です")
+        if item.get("cta_type") == "comment" and not item.get("cta_word"):
+            item_errors.append("コメントCTAにcta_wordがありません")
+        if not item.get("body") or not item.get("topic") or not item.get("topic_tag"):
+            item_errors.append("本文・テーマ・topic_tagのいずれかが空です")
+        results.append({"post_no": post_no, "passed": not item_errors, "errors": item_errors})
+        errors.extend(f"{post_no}: {e}" for e in item_errors)
+
+    duplicates = [p for p, n in Counter(referenced).items() if n > 1]
+    if duplicates:
+        errors.append(f"同じ完成画像が複数箇所で参照されています: {duplicates}")
+    actual_images = sorted(str(p) for p in Path("generated").rglob("*.png"))
+    if sorted(referenced) != actual_images:
+        missing = sorted(set(referenced) - set(actual_images))
+        unused = sorted(set(actual_images) - set(referenced))
+        errors.append(f"画像参照差分 missing={missing} unused={unused}")
+    new_refs = [p for p in referenced if "20260805-20260811" in p]
+    if len(new_refs) != 42:
+        errors.append(f"新規参照画像が42枚ではありません: {len(new_refs)}")
+    return {"passed": not errors, "post_count": len(queue), "new_image_count": len(new_refs), "errors": errors, "results": results}
 
 
 def assert_schedule(queue_path="data/content_queue.json"):
