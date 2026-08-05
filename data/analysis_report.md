@@ -6,19 +6,20 @@
 
 |分類|項目|重み|評価回数|直近評価|
 |---|---|---:|---:|---:|
-|cta|comment|1.976|12|0.750000|
+|cta|comment|1.978|13|0.611111|
 |cta|save|1.417|9|0.031250|
 |cta|none|1.396|4|0.019231|
 |cta|share|1.339|2|0.027027|
 |format|empathy|2.000|1|0.099057|
 |format|poll|2.000|2|0.218803|
-|format|three_choice|1.987|9|0.750000|
+|format|three_choice|1.988|10|0.611111|
 |format|daily_tarot|1.673|7|0.031250|
 |format|psychology|1.339|2|0.027027|
 |format|story|1.154|2|0.012658|
 |format|event_countdown|1.145|1|0.012048|
 |format|event_today|1.000|2|0.000000|
 |format|short_advice|1.000|1|0.000000|
+|topic|8月8日までの表面化|2.000|1|0.611111|
 |topic|8月の関係変化|2.000|1|0.419355|
 |topic|今月の判断軸|2.000|1|0.293103|
 |topic|今週の関係の兆し|2.000|1|3.250000|
@@ -45,12 +46,12 @@
 |形式|テーマ|CTA|表示|いいね|返信|シェア系|評価値|
 |---|---|---|---:|---:|---:|---:|---:|
 |three_choice|今週の関係の兆し|comment|4|1|3|0|3.2500|
+|three_choice|今週の関係の兆し|comment|4|1|3|0|3.2500|
 |three_choice|音信不通の連絡契機|comment|24|2|4|0|0.7500|
+|three_choice|8月8日までの表面化|comment|36|2|5|0|0.6111|
 |three_choice|連絡時期|save|35|1|4|0|0.4857|
 |three_choice|彼の本音|comment|31|2|3|0|0.4516|
 |three_choice|彼の本音|comment|32|2|3|0|0.4375|
 |three_choice|8月の関係変化|comment|31|1|3|0|0.4194|
 |three_choice|8月の関係変化|comment|33|1|3|0|0.3939|
 |daily_tarot|今月の判断軸|save|58|5|3|0|0.2931|
-|daily_tarot|今月の判断軸|save|60|5|3|0|0.2833|
-|poll|復縁の悩み|comment|585|12|29|0|0.2188|
