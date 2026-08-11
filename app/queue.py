@@ -5,8 +5,6 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from .db import connect, jdump, log_event
-from .image_maker import render_post_image
-from .planner import CARDS
 from .safety import check
 from .settings import settings
 
@@ -27,7 +25,6 @@ FORMATS = {
     "poll",
     "story",
 }
-CARD_BY_ID = {int(card["id"]): card for card in CARDS}
 
 
 def _load():
@@ -58,19 +55,10 @@ def _validate(item):
         raise ValueError(
             f"投稿本文が品質ゲートを通過していません: {','.join(quality['reasons'])}"
         )
-    card_ids = [int(value) for value in item.get("card_ids", [])]
     has_prebuilt_image = bool(item.get("image_path"))
-    unknown_card_ids = [value for value in card_ids if value not in CARD_BY_ID]
-    if unknown_card_ids and not has_prebuilt_image:
-        raise ValueError(
-            "画像を自動生成する投稿に存在しないカードIDが指定されています: "
-            + ",".join(str(value) for value in unknown_card_ids)
-        )
     if item["format"] == "three_choice":
-        if not has_prebuilt_image and (
-            len(card_ids) != 3 or len(set(card_ids)) != 3
-        ):
-            raise ValueError("3択投稿には異なるカードIDが3枚必要です")
+        if not has_prebuilt_image:
+            raise ValueError("3択投稿には新規制作済みの親画像が必要です")
         replies = item.get("replies", [])
         if len(replies) != 3:
             raise ValueError("3択投稿には返信が3件必要です")
@@ -79,13 +67,7 @@ def _validate(item):
             raise ValueError(
                 "3択返信の順番はA・B・Cまたは左・中央・右である必要があります"
             )
-    # Prebuilt images are the source of truth. Unknown IDs are allowed here
-    # because they are metadata only and no card artwork is generated.
-    cards = [
-        CARD_BY_ID.get(value, {"id": value, "name_ja": f"カードID {value}"})
-        for value in card_ids
-    ]
-    return quality, cards
+    return quality, []
 
 
 def due(slot, target_date=None):
@@ -164,19 +146,6 @@ def prepare(slot, target_date=None):
                         raise FileNotFoundError(
                             f"3択結果画像がGitHub上にありません: {reply_image}"
                         )
-        elif cards:
-            current_path = existing.get("image_path")
-            if current_path and Path(current_path).is_file():
-                image_path = current_path
-            else:
-                image_path = render_post_image(
-                    existing["id"],
-                    item["format"],
-                    item["title"],
-                    cards,
-                    item.get("event"),
-                    item.get("image_copy"),
-                )
         else:
             image_path = None
 
@@ -251,15 +220,6 @@ def prepare(slot, target_date=None):
                     raise FileNotFoundError(
                         f"3択結果画像がGitHub上にありません: {reply_image}"
                     )
-    elif cards:
-        image_path = render_post_image(
-            draft_id,
-            item["format"],
-            item["title"],
-            cards,
-            item.get("event"),
-            item.get("image_copy"),
-        )
     else:
         image_path = None
     with connect() as con:
@@ -278,4 +238,3 @@ def prepare(slot, target_date=None):
         },
     )
     return result
-

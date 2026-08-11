@@ -1,0 +1,5 @@
+GitHub上で次の対象を削除してください。ZIPの上書き展開だけでは削除されません。
+
+- app/image_maker.py
+- tests/test_image_spec.py
+- tarot_cards/ ディレクトリ一式

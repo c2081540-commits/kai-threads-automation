@@ -14,7 +14,6 @@ os.environ["MIN_BODY_LENGTH"] = "20"
 
 from app.db import init_db, connect
 from app.planner import plan
-from app.planner import CARDS
 from app.safety import check
 from app.events import active_events
 from app.publisher import publish
@@ -44,30 +43,9 @@ class SystemTest(unittest.TestCase):
         body = "復縁できるかは二人の状況で変わります。焦る前に、別れた原因を整理しましょう。"
         self.assertTrue(check(body)["passed"])
 
-    def test_plan_creates_non_duplicate_drafts(self):
-        with connect() as con:
-            before = con.execute("SELECT COUNT(*) FROM drafts").fetchone()[0]
-        first = plan(seed=100)
-        second = plan(seed=100)
-        self.assertNotEqual(first["body"], second["body"])
-        with connect() as con:
-            after = con.execute("SELECT COUNT(*) FROM drafts").fetchone()[0]
-        self.assertEqual(after - before, 2)
-
-    def test_all_22_major_arcana_are_loaded(self):
-        self.assertEqual(len(CARDS), 22)
-        self.assertEqual(len({card["id"] for card in CARDS}), 22)
-
-    def test_three_choice_uses_real_card_images(self):
-        result = plan(seed=20260725)
-        self.assertTrue(os.path.isfile(result["image_path"]))
-        with connect() as con:
-            row = con.execute(
-                "SELECT cards_json FROM drafts WHERE id=?", (result["draft_id"],)
-            ).fetchone()
-        cards = __import__("json").loads(row["cards_json"])
-        self.assertEqual(len(cards), 3)
-        self.assertEqual(len({card["id"] for card in cards}), 3)
+    def test_legacy_card_planner_is_disabled(self):
+        with self.assertRaisesRegex(RuntimeError, "旧カード素材"):
+            plan(seed=100)
 
     def test_valentine_countdown_is_forced(self):
         events = active_events(date(2027, 2, 7))
@@ -280,6 +258,15 @@ class SystemTest(unittest.TestCase):
 
     def test_three_choice_queue_keeps_answers_in_replies(self):
         Path("data").mkdir(exist_ok=True)
+        Path("generated").mkdir(exist_ok=True)
+        image_paths = [
+            "generated/test-three-choice-new.png",
+            "generated/test-three-choice-new-result-A.png",
+            "generated/test-three-choice-new-result-B.png",
+            "generated/test-three-choice-new-result-C.png",
+        ]
+        for image_path in image_paths:
+            Path(image_path).touch()
         queue = [
             {
                 "key": "test-three-choice",
@@ -294,11 +281,11 @@ class SystemTest(unittest.TestCase):
                     "一度深呼吸して、直感でA・B・Cから1枚選んでください。\n"
                     "結果は返信欄へ。"
                 ),
-                "card_ids": [2, 6, 18],
+                "image_path": image_paths[0],
                 "replies": [
-                    {"label": "A", "text": "Aの結果です。静かに状況を見極める時期です。"},
-                    {"label": "B", "text": "Bの結果です。二人の選択を整理してください。"},
-                    {"label": "C", "text": "Cの結果です。不安を事実だと決めつけないでください。"},
+                    {"label": "A", "text": "Aの結果です。静かに状況を見極める時期です。", "image_path": image_paths[1]},
+                    {"label": "B", "text": "Bの結果です。二人の選択を整理してください。", "image_path": image_paths[2]},
+                    {"label": "C", "text": "Cの結果です。不安を事実だと決めつけないでください。", "image_path": image_paths[3]},
                 ],
             }
         ]
@@ -311,7 +298,7 @@ class SystemTest(unittest.TestCase):
         self.assertNotIn("女教皇", result["body"])
         self.assertEqual([x["label"] for x in result["replies"]], list("ABC"))
         row = prepare("evening", "2030-01-01")
-        self.assertTrue(os.path.isfile(row["image_path"]))
+        self.assertEqual(row["image_path"], image_paths[0])
 
     def test_three_choice_queue_accepts_left_center_right_labels(self):
         Path("data").mkdir(exist_ok=True)
