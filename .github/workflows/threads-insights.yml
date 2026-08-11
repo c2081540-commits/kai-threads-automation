@@ -2,6 +2,11 @@ name: Threads Insights Collector
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/threads-insights.yml
   schedule:
     # 07:30 / 12:30 / 20:30 / 23:30 JST
     - cron: "30 22,3,11,14 * * *"
