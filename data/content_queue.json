@@ -13,11 +13,6 @@
     "image_title": "8月8日までに表面化すること",
     "cta_type": "comment",
     "cta_word": "8",
-    "card_ids": [
-      6,
-      13,
-      38
-    ],
     "image_path": "generated/weeks/20260731-20260806/20260804_2000_KAI-013_three-choice.png",
     "event": {
       "name": "ライオンズゲート",
@@ -562,5 +557,380 @@
     "cta_type": "none",
     "cta_word": "",
     "image_path": "generated/weeks/20260812-20260818/images/20260812_1200_KAI-036_daily-tarot.png"
+  },
+  {
+    "key": "2026-08-12-evening-kai-037",
+    "post_no": "KAI-037",
+    "date": "2026-08-12",
+    "slot": "evening",
+    "status": "ready",
+    "format": "three_choice",
+    "topic": "彼が今迷っていること",
+    "topic_tag": "復縁占い",
+    "title": "彼が今、迷っていること",
+    "body": "彼の沈黙の奥では、何を決めきれずにいるのでしょうか。\n\nA・B・Cから、最初に目が止まった1枚を選んでください。選んだら「迷い」と返信してください。\n\n動けない理由、過去への気持ち、関係を見直す可能性を返信欄で読みます。",
+    "image_title": "彼が今、迷っていること",
+    "cta_type": "comment",
+    "cta_word": "迷い",
+    "image_path": "generated/weeks/20260812-20260818/images/20260812_2000_KAI-037_three-choice.png",
+    "replies": [
+      {
+        "label": "A",
+        "text": "Aを選んだあなたへ｜ソードの2\n\n話したい気持ちと、話せば関係が動く怖さの間で止まっています。気持ちがないからではなく、どちらを選んでも何かを失うように感じているのかもしれません。今は結論より、決めきれない状態そのものが彼の本音に近そうです。",
+        "next_action": "",
+        "image_path": "generated/weeks/20260812-20260818/images/20260812_2000_KAI-037_three-choice-result-A.png"
+      },
+      {
+        "label": "B",
+        "text": "Bを選んだあなたへ｜カップの6\n\n二人の過去を、嫌な記憶だけではなく優しかった時間として思い返しています。ただ、懐かしさと戻る決断はまだ別。以前の安心感を求めるのか、今の二人として向き合うのかで迷っているようです。",
+        "next_action": "",
+        "image_path": "generated/weeks/20260812-20260818/images/20260812_2000_KAI-037_three-choice-result-B.png"
+      },
+      {
+        "label": "C",
+        "text": "Cを選んだあなたへ｜審判\n\n終わった関係として置くのか、もう一度見直すのかを考えています。過去からの呼びかけに気づき始めても、すぐ復縁を決めたという意味ではありません。別れた理由を今の視点で再評価する段階です。",
+        "next_action": "",
+        "image_path": "generated/weeks/20260812-20260818/images/20260812_2000_KAI-037_three-choice-result-C.png"
+      }
+    ]
+  },
+  {
+    "key": "2026-08-13-morning-kai-038",
+    "post_no": "KAI-038",
+    "date": "2026-08-13",
+    "slot": "morning",
+    "status": "ready",
+    "format": "empathy",
+    "topic": "返信がないこともひとつの答えになる",
+    "topic_tag": "音信不通",
+    "title": "返信がないことも、ひとつの答えになる",
+    "body": "返事が来ない理由を、何通りも考え続けてしまうことがあります。\n\nでも、今は返さないという行動も、彼が出している答えの一部です。\n\nその事実はつらくても、あなたの価値まで否定しているわけではありません。",
+    "image_title": "返信がないことも、ひとつの答えになる",
+    "cta_type": "none",
+    "cta_word": ""
+  },
+  {
+    "key": "2026-08-13-noon-kai-039",
+    "post_no": "KAI-039",
+    "date": "2026-08-13",
+    "slot": "noon",
+    "status": "ready",
+    "format": "poll",
+    "topic": "待つか区切るか",
+    "topic_tag": "恋愛相談",
+    "title": "もう少し待つ？ここで区切る？",
+    "body": "今の関係をもう少し待てる理由がある人も、前へ進むために区切りが必要な人もいます。\n\n今のあなたに近い方はどちらですか？\nA：もう少し待つ\nB：ここで区切る",
+    "image_title": "もう少し待つ？ここで区切る？",
+    "cta_type": "comment",
+    "cta_word": "A/B",
+    "image_path": "generated/weeks/20260812-20260818/images/20260813_1200_KAI-039_ab-poll.png"
+  },
+  {
+    "key": "2026-08-13-evening-kai-040",
+    "post_no": "KAI-040",
+    "date": "2026-08-13",
+    "slot": "evening",
+    "status": "ready",
+    "format": "reflection",
+    "topic": "最後の会話を確認する",
+    "topic_tag": "恋愛相談",
+    "title": "最後の会話を確認する",
+    "body": "連絡したい気持ちが強い時ほど、最後に何が起きたかより、今すぐ返事が欲しい気持ちが先に出ます。\n\n彼が最後に言ったこと、自分が伝え切れなかったこと、同じ話題ですれ違っていなかったか。\n\n送る前に見直すと、連絡の目的が不安を消すためなのか、会話を戻すためなのかが見えやすくなります。",
+    "image_title": "最後の会話を確認する",
+    "cta_type": "save",
+    "cta_word": ""
+  },
+  {
+    "key": "2026-08-14-morning-kai-041",
+    "post_no": "KAI-041",
+    "date": "2026-08-14",
+    "slot": "morning",
+    "status": "ready",
+    "format": "empathy",
+    "topic": "夢に彼が出てきた朝",
+    "topic_tag": "復縁",
+    "title": "夢に彼が出てきた朝",
+    "body": "夢の中では普通に話せたのに、目が覚めると連絡できない現実へ戻る朝があります。\n\n夢に出てきたことが未来の予告とは限りません。\n\n言えなかった言葉や、まだ整理できていない気持ちを、心が眠っている間に映しているのかもしれません。",
+    "image_title": "夢に彼が出てきた朝",
+    "cta_type": "none",
+    "cta_word": ""
+  },
+  {
+    "key": "2026-08-14-noon-kai-042",
+    "post_no": "KAI-042",
+    "date": "2026-08-14",
+    "slot": "noon",
+    "status": "ready",
+    "format": "daily_tarot",
+    "topic": "彼の沈黙が意味するもの",
+    "topic_tag": "音信不通",
+    "title": "彼の沈黙が意味するもの｜隠者",
+    "body": "今日の1枚は「隠者」。\n\n彼の沈黙は、何かを隠して楽しんでいるというより、一人で考えを整理したい状態に近そうです。\n\nただし、考えていることと連絡へ動くことは別。今は見えない気持ちを決めつけず、沈黙という現実も一緒に受け止めたい流れです。",
+    "image_title": "彼の沈黙が意味するもの｜隠者",
+    "cta_type": "none",
+    "cta_word": "",
+    "image_path": "generated/weeks/20260812-20260818/images/20260814_1200_KAI-042_daily-tarot.png"
+  },
+  {
+    "key": "2026-08-14-evening-kai-043",
+    "post_no": "KAI-043",
+    "date": "2026-08-14",
+    "slot": "evening",
+    "status": "ready",
+    "format": "three_choice",
+    "topic": "関係が動くきっかけ",
+    "topic_tag": "恋愛占い",
+    "title": "関係が動くきっかけ",
+    "body": "止まっているように見える関係は、何をきっかけに動き始めるのでしょうか。\n\nA・B・Cから直感で1枚選び、「きっかけ」と返信してください。\n\n小さな連絡、巡るタイミング、落ち着いた会話のどれが近いかを返信欄で読みます。",
+    "image_title": "関係が動くきっかけ",
+    "cta_type": "comment",
+    "cta_word": "きっかけ",
+    "image_path": "generated/weeks/20260812-20260818/images/20260814_2000_KAI-043_three-choice.png",
+    "replies": [
+      {
+        "label": "A",
+        "text": "Aを選んだあなたへ｜カップのペイジ\n\n短い近況や軽い質問など、感情を重くしすぎない一言が入口になりそうです。まだ大きな決断ではなく、話しても大丈夫かを確かめるような小さな接点。やり取りが続くかを落ち着いて見たい流れです。",
+        "next_action": "",
+        "image_path": "generated/weeks/20260812-20260818/images/20260814_2000_KAI-043_three-choice-result-A.png"
+      },
+      {
+        "label": "B",
+        "text": "Bを選んだあなたへ｜運命の輪\n\n予定の変化や共通の出来事など、二人が意図していなかったタイミングが接点を作りそうです。偶然が起きることと復縁が決まることは別ですが、自然に会話できる機会が巡る可能性があります。",
+        "next_action": "",
+        "image_path": "generated/weeks/20260812-20260818/images/20260814_2000_KAI-043_three-choice-result-B.png"
+      },
+      {
+        "label": "C",
+        "text": "Cを選んだあなたへ｜節制\n\n強かった感情が少し落ち着き、責めるでも結論を迫るでもない会話ができることがきっかけになりそうです。急に距離を縮めるより、互いに苦しくない温度へ整うことで関係が動きます。",
+        "next_action": "",
+        "image_path": "generated/weeks/20260812-20260818/images/20260814_2000_KAI-043_three-choice-result-C.png"
+      }
+    ]
+  },
+  {
+    "key": "2026-08-15-morning-kai-044",
+    "post_no": "KAI-044",
+    "date": "2026-08-15",
+    "slot": "morning",
+    "status": "ready",
+    "format": "empathy",
+    "topic": "休みの日ほど彼を待ってしまう理由",
+    "topic_tag": "音信不通",
+    "title": "休みの日ほど彼を待ってしまう理由",
+    "body": "仕事がある日は考えずにいられても、休みの日は通知のない時間が長く感じます。\n\n待つ気持ちが急に強くなったのではなく、予定が減った分だけ寂しさが前へ出ているのかもしれません。\n\n今日一日すべてを、連絡待ちにしなくて大丈夫です。",
+    "image_title": "休みの日ほど彼を待ってしまう理由",
+    "cta_type": "none",
+    "cta_word": ""
+  },
+  {
+    "key": "2026-08-15-noon-kai-045",
+    "post_no": "KAI-045",
+    "date": "2026-08-15",
+    "slot": "noon",
+    "status": "ready",
+    "format": "poll",
+    "topic": "自分から連絡するか彼を待つか",
+    "topic_tag": "恋愛相談",
+    "title": "自分から連絡する？彼を待つ？",
+    "body": "自分から一度だけ言葉を届けたい人も、今は彼からの動きを待ちたい人もいます。\n\n今のあなたに近い方はどちらですか？\nA：自分から連絡する\nB：彼を待つ",
+    "image_title": "自分から連絡する？彼を待つ？",
+    "cta_type": "comment",
+    "cta_word": "A/B",
+    "image_path": "generated/weeks/20260812-20260818/images/20260815_1200_KAI-045_ab-poll.png"
+  },
+  {
+    "key": "2026-08-15-evening-kai-046",
+    "post_no": "KAI-046",
+    "date": "2026-08-15",
+    "slot": "evening",
+    "status": "ready",
+    "format": "empathy",
+    "topic": "もう一度送れば返事が来る気がする",
+    "topic_tag": "音信不通",
+    "title": "もう一度送れば返事が来る気がする",
+    "body": "送る言葉が悪かっただけかもしれない。今度こそ伝わるかもしれない。\n\nそう思うほど、未返信の一通をなかったことにしたくなります。\n\nでも今必要なのは、次の文面を考えることより、返事がない状態で自分がどこまで待てるかを見ることかもしれません。",
+    "image_title": "もう一度送れば返事が来る気がする",
+    "cta_type": "none",
+    "cta_word": ""
+  },
+  {
+    "key": "2026-08-16-morning-kai-047",
+    "post_no": "KAI-047",
+    "date": "2026-08-16",
+    "slot": "morning",
+    "status": "ready",
+    "format": "reflection",
+    "topic": "待つことと生活を止めることの違い",
+    "topic_tag": "復縁",
+    "title": "待つことと生活を止めることの違い",
+    "body": "彼を待つ気持ちがあっても、自分の予定まで空け続ける必要はありません。\n\n待つことは気持ちを残すこと。生活を止めることは、彼の反応があるまで自分の時間を使えなくなることです。\n\n好きなままでも、今日の予定は自分のために決めていいのです。",
+    "image_title": "待つことと生活を止めることの違い",
+    "cta_type": "none",
+    "cta_word": ""
+  },
+  {
+    "key": "2026-08-16-noon-kai-048",
+    "post_no": "KAI-048",
+    "date": "2026-08-16",
+    "slot": "noon",
+    "status": "ready",
+    "format": "daily_tarot",
+    "topic": "動く時か整える時か",
+    "topic_tag": "恋愛相談",
+    "title": "今は動く時？整える時？｜力",
+    "body": "今日の1枚は「力」。\n\n今必要なのは、勢いで状況を動かす強さではなく、不安に押されても自分を見失わない強さです。\n\n連絡したい気持ちを否定せず、それでも今日送る必要があるのかを穏やかに見直す。今は外へ動く前に、感情を整える流れです。",
+    "image_title": "今は動く時？整える時？｜力",
+    "cta_type": "none",
+    "cta_word": "",
+    "image_path": "generated/weeks/20260812-20260818/images/20260816_1200_KAI-048_daily-tarot.png"
+  },
+  {
+    "key": "2026-08-16-evening-kai-049",
+    "post_no": "KAI-049",
+    "date": "2026-08-16",
+    "slot": "evening",
+    "status": "ready",
+    "format": "three_choice",
+    "topic": "彼があなたを思い出す瞬間",
+    "topic_tag": "復縁占い",
+    "title": "彼があなたを思い出す瞬間",
+    "body": "彼はどんな時に、あなたとの時間を思い出すのでしょうか。\n\nA・B・Cから気になる1枚を選び、「瞬間」と返信してください。\n\n懐かしい記憶、一人の時間、明るい出来事のどれが近いかを返信欄で読みます。",
+    "image_title": "彼があなたを思い出す瞬間",
+    "cta_type": "comment",
+    "cta_word": "瞬間",
+    "image_path": "generated/weeks/20260812-20260818/images/20260816_2000_KAI-049_three-choice.png",
+    "replies": [
+      {
+        "label": "A",
+        "text": "Aを選んだあなたへ｜カップの6\n\n以前一緒に行った場所や、似た香り、季節の空気に触れた時、何気ない記憶が戻りそうです。寂しさだけではなく、安心できた時間として思い出す流れ。ただし懐かしさと連絡の決断は分けて見たいところです。",
+        "next_action": "",
+        "image_path": "generated/weeks/20260812-20260818/images/20260816_2000_KAI-049_three-choice-result-A.png"
+      },
+      {
+        "label": "B",
+        "text": "Bを選んだあなたへ｜隠者\n\n人と離れて一人になった夜や、静かに考え事をする時間に思い出しそうです。外では平気に見えても、誰にも見せないところで二人の関係を振り返っています。まだ答えを内側で探している段階です。",
+        "next_action": "",
+        "image_path": "generated/weeks/20260812-20260818/images/20260816_2000_KAI-049_three-choice-result-B.png"
+      },
+      {
+        "label": "C",
+        "text": "Cを選んだあなたへ｜太陽\n\n楽しかった出来事や、あなたと自然に笑えた時間に似た場面で思い出しそうです。後悔より明るい記憶として浮かぶため、彼の中で二人の時間を否定せず振り返れる瞬間になりそうです。",
+        "next_action": "",
+        "image_path": "generated/weeks/20260812-20260818/images/20260816_2000_KAI-049_three-choice-result-C.png"
+      }
+    ]
+  },
+  {
+    "key": "2026-08-17-morning-kai-050",
+    "post_no": "KAI-050",
+    "date": "2026-08-17",
+    "slot": "morning",
+    "status": "ready",
+    "format": "empathy",
+    "topic": "彼のSNSを見た後の朝",
+    "topic_tag": "恋愛相談",
+    "title": "彼のSNSを見た後の朝",
+    "body": "知りたくて見たはずなのに、知らない時間が増えたように感じる朝があります。\n\n投稿に写っていない事情まで想像すると、見えない部分ほど苦しくなります。\n\nSNSで分かるのは彼が見せた一場面だけ。二人の答えすべてではありません。",
+    "image_title": "彼のSNSを見た後の朝",
+    "cta_type": "none",
+    "cta_word": ""
+  },
+  {
+    "key": "2026-08-17-noon-kai-051",
+    "post_no": "KAI-051",
+    "date": "2026-08-17",
+    "slot": "noon",
+    "status": "ready",
+    "format": "poll",
+    "topic": "彼のSNSを見るか見ないか",
+    "topic_tag": "恋愛相談",
+    "title": "彼のSNSを見る？今日は見ない？",
+    "body": "彼の今を確かめたくて見る人も、見た後につらくなるから今日は自分を守る人もいます。\n\n今のあなたに近い方はどちらですか？\nA：SNSを見る\nB：今日は見ない",
+    "image_title": "彼のSNSを見る？今日は見ない？",
+    "cta_type": "comment",
+    "cta_word": "A/B",
+    "image_path": "generated/weeks/20260812-20260818/images/20260817_1200_KAI-051_ab-poll.png"
+  },
+  {
+    "key": "2026-08-17-evening-kai-052",
+    "post_no": "KAI-052",
+    "date": "2026-08-17",
+    "slot": "evening",
+    "status": "ready",
+    "format": "reflection",
+    "topic": "復縁したいのか寂しさを終わらせたいのか",
+    "topic_tag": "復縁",
+    "title": "復縁したいのか、寂しさを終わらせたいのか",
+    "body": "彼だからもう一度一緒にいたいのか。連絡がない寂しさを終わらせたいのか。\n\nどちらも本当の気持ちになり得ますが、必要な答えは少し違います。\n\n彼が戻っても以前と同じ問題が残るなら、それでも今の彼と新しい関係を作りたいか。そこに復縁したい理由が見えてきます。",
+    "image_title": "復縁したいのか、寂しさを終わらせたいのか",
+    "cta_type": "none",
+    "cta_word": ""
+  },
+  {
+    "key": "2026-08-18-morning-kai-053",
+    "post_no": "KAI-053",
+    "date": "2026-08-18",
+    "slot": "morning",
+    "status": "ready",
+    "format": "empathy",
+    "topic": "今週も連絡がなかったと感じる人へ",
+    "topic_tag": "音信不通",
+    "title": "今週も連絡がなかったと感じる人へ",
+    "body": "また一週間、何も変わらなかったように感じる朝があります。\n\nでも、連絡がなかったことと、あなたが何も進めなかったことは同じではありません。\n\n苦しい中でも生活を続けた時間は、彼の反応とは別にあなたの中へ残っています。",
+    "image_title": "今週も連絡がなかったと感じる人へ",
+    "cta_type": "none",
+    "cta_word": ""
+  },
+  {
+    "key": "2026-08-18-noon-kai-054",
+    "post_no": "KAI-054",
+    "date": "2026-08-18",
+    "slot": "noon",
+    "status": "ready",
+    "format": "daily_tarot",
+    "topic": "この一週間で手放していい不安",
+    "topic_tag": "恋愛相談",
+    "title": "この一週間で手放していい不安｜月",
+    "body": "今日の1枚は「月」。\n\n見えない彼の気持ちを考えるほど、まだ起きていないことまで事実のように感じる時があります。\n\n今週手放していいのは、想像だけで作った最悪の答え。分からないことは分からないまま置き、見えている事実と自分の生活へ戻る流れです。",
+    "image_title": "この一週間で手放していい不安｜月",
+    "cta_type": "none",
+    "cta_word": "",
+    "image_path": "generated/weeks/20260812-20260818/images/20260818_1200_KAI-054_daily-tarot.png"
+  },
+  {
+    "key": "2026-08-18-evening-kai-055",
+    "post_no": "KAI-055",
+    "date": "2026-08-18",
+    "slot": "evening",
+    "status": "ready",
+    "format": "three_choice",
+    "topic": "今月後半に起きる変化",
+    "topic_tag": "タロット占い",
+    "title": "今月後半に起きる変化",
+    "body": "8月後半、二人の関係やあなたの気持ちにはどんな変化が入りそうでしょうか。\n\nA・B・Cから直感で1枚選び、「後半」と返信してください。\n\n新しい一歩、現実的な判断、一つの完成を返信欄で読みます。",
+    "image_title": "今月後半に起きる変化",
+    "cta_type": "comment",
+    "cta_word": "後半",
+    "image_path": "generated/weeks/20260812-20260818/images/20260818_2000_KAI-055_three-choice.png",
+    "replies": [
+      {
+        "label": "A",
+        "text": "Aを選んだあなたへ｜愚者\n\n重く考えすぎていた状態から離れ、短い会話や新しい接点へ踏み出す変化がありそうです。すぐ復縁という形へ当てはめず、今の二人として話せるか試す軽さが流れを変えます。",
+        "next_action": "",
+        "image_path": "generated/weeks/20260812-20260818/images/20260818_2000_KAI-055_three-choice-result-A.png"
+      },
+      {
+        "label": "B",
+        "text": "Bを選んだあなたへ｜正義\n\n気持ちだけでなく、これまでの言葉と行動を落ち着いて見られるようになります。戻りたい願いを否定せず、それでも関係が対等だったかを判断する変化。曖昧な期待より現実的な答えへ近づきそうです。",
+        "next_action": "",
+        "image_path": "generated/weeks/20260812-20260818/images/20260818_2000_KAI-055_three-choice-result-B.png"
+      },
+      {
+        "label": "C",
+        "text": "Cを選んだあなたへ｜世界\n\n中途半端だった関係や気持ちに、一つの答えが見えやすい流れです。再びつながる場合も、区切る場合も、曖昧なままより納得できる形へ進みます。過去の続きではなく、次の段階を選ぶ変化です。",
+        "next_action": "",
+        "image_path": "generated/weeks/20260812-20260818/images/20260818_2000_KAI-055_three-choice-result-C.png"
+      }
+    ]
   }
 ]
