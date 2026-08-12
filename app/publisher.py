@@ -62,15 +62,9 @@ def publish(draft_id):
         parent_media = api.wait_until_published(media_id)
         permalink = parent_media["permalink"]
         for reply in replies:
-            label = reply.get("label")
-            reply_image_path = (
-                reply.get("image_path")
-                or (
-                    f"generated/post-{draft_id:05d}-result-{label}.png"
-                    if row["format"] == "three_choice" and label in "ABC"
-                    else None
-                )
-            )
+            # Reply images are optional.  An explicit image_path keeps older
+            # image-based schedules working; no image_path means a text reply.
+            reply_image_path = reply.get("image_path")
             reply_image_url = (
                 settings.image_base_url.rstrip("/")
                 + "/"

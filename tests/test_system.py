@@ -388,7 +388,7 @@ class SystemTest(unittest.TestCase):
         self.assertIsNone(row["image_path"])
         self.assertEqual(row["hook_type"], "朝の短い助言")
 
-    def test_three_choice_publishes_abc_as_direct_parent_replies(self):
+    def test_three_choice_publishes_abc_as_direct_text_replies(self):
         with connect() as con:
             cur = con.execute(
                 """INSERT INTO drafts(
@@ -417,18 +417,20 @@ class SystemTest(unittest.TestCase):
             )
             draft_id = cur.lastrowid
 
-        calls = []
+        image_calls = []
+        text_calls = []
 
         class ReplyAPI:
             def verify_identity(self):
                 return {"id": "user-1", "username": "kai"}
 
             def publish_image(self, text, image_url, reply_to_id=None):
-                calls.append((text, image_url, reply_to_id))
-                return f"media-{len(calls)}"
+                image_calls.append((text, image_url, reply_to_id))
+                return "media-parent"
 
             def publish_text(self, text, reply_to_id=None):
-                raise AssertionError("画像投稿である必要があります")
+                text_calls.append((text, reply_to_id))
+                return f"media-reply-{len(text_calls)}"
 
             def wait_until_published(self, media_id):
                 return {
@@ -442,10 +444,62 @@ class SystemTest(unittest.TestCase):
         ):
             result = publish(draft_id)
 
-        self.assertEqual(len(calls), 4)
-        self.assertIsNone(calls[0][2])
+        self.assertEqual(len(image_calls), 1)
+        self.assertIsNone(image_calls[0][2])
         self.assertEqual(
-            [call[2] for call in calls[1:]],
+            [call[1] for call in text_calls],
+            ["media-parent", "media-parent", "media-parent"],
+        )
+        self.assertEqual(
+            result["reply_ids"],
+            ["media-reply-1", "media-reply-2", "media-reply-3"],
+        )
+
+    def test_three_choice_keeps_explicit_reply_images_for_legacy_schedules(self):
+        replies = [
+            {"label": label, "text": f"{label}の結果", "image_path": f"generated/{label}.png"}
+            for label in "ABC"
+        ]
+        with connect() as con:
+            cur = con.execute(
+                """INSERT INTO drafts(
+                   format,topic,hook_type,cta_type,cards_json,body,body_hash,
+                   image_path,status,quality_json,replies_json
+                   ) VALUES(?,?,?,?,?,?,?,?,?,?,?)""",
+                (
+                    "three_choice", "復縁", "3択", "コメント", "[]",
+                    "既存の画像付き返信を維持するための後方互換テストです。",
+                    "legacy-image-replies-test", "generated/parent.png", "pending",
+                    jdump({"passed": True}), jdump(replies),
+                ),
+            )
+            draft_id = cur.lastrowid
+
+        image_calls = []
+
+        class LegacyReplyAPI:
+            def verify_identity(self):
+                return {"id": "user-1", "username": "kai"}
+
+            def publish_image(self, text, image_url, reply_to_id=None):
+                image_calls.append((text, image_url, reply_to_id))
+                return f"media-{len(image_calls)}"
+
+            def publish_text(self, text, reply_to_id=None):
+                raise AssertionError("明示された返信画像を使用する必要があります")
+
+            def wait_until_published(self, media_id):
+                return {"id": media_id, "permalink": f"https://example.com/{media_id}"}
+
+        with patch("app.publisher.ThreadsAPI", LegacyReplyAPI), patch(
+            "app.publisher.settings",
+            SimpleNamespace(image_base_url="https://example.com"),
+        ):
+            result = publish(draft_id)
+
+        self.assertEqual(len(image_calls), 4)
+        self.assertEqual(
+            [call[2] for call in image_calls[1:]],
             ["media-1", "media-1", "media-1"],
         )
         self.assertEqual(result["reply_ids"], ["media-2", "media-3", "media-4"])
