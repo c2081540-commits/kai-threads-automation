@@ -59,7 +59,7 @@ def validate_weekly(package):
                 raise ValueError("3択投稿には完成済みの選択画像が必要です")
             for reply in item.get("replies", []):
                 reply_image = reply.get("image_path")
-                if not reply_image or not Path(reply_image).is_file():
+                if reply_image and not Path(reply_image).is_file():
                     raise FileNotFoundError(
                         f"完成済みの3択結果画像がありません: {reply_image}"
                     )

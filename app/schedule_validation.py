@@ -61,7 +61,10 @@ def validate_schedule(queue_path="data/content_queue.json"):
             if [r.get("label") for r in replies] != ["左", "中央", "右"]:
                 item_errors.append("3択返信が左・中央・右の3件ではありません")
             for reply in replies:
-                rp = Path(reply.get("image_path", ""))
+                reply_image_path = reply.get("image_path")
+                if not reply_image_path:
+                    continue
+                rp = Path(reply_image_path)
                 if rp.parent != expected_folder:
                     item_errors.append(f"返信{reply.get('label')}のフォルダが不正です")
                 if not rp.is_file():

@@ -142,7 +142,7 @@ def prepare(slot, target_date=None):
             if item["format"] == "three_choice":
                 for reply in item.get("replies", []):
                     reply_image = reply.get("image_path")
-                    if not reply_image or not Path(reply_image).is_file():
+                    if reply_image and not Path(reply_image).is_file():
                         raise FileNotFoundError(
                             f"3択結果画像がGitHub上にありません: {reply_image}"
                         )
@@ -216,7 +216,7 @@ def prepare(slot, target_date=None):
         if item["format"] == "three_choice":
             for reply in replies:
                 reply_image = reply.get("image_path")
-                if not reply_image or not Path(reply_image).is_file():
+                if reply_image and not Path(reply_image).is_file():
                     raise FileNotFoundError(
                         f"3択結果画像がGitHub上にありません: {reply_image}"
                     )
