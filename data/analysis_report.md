@@ -72,10 +72,10 @@
 |three_choice|彼が言えずにいること|comment|1|1|3|0|13.0000|
 |three_choice|彼が言えずにいること|comment|1|1|3|0|13.0000|
 |three_choice|お盆前の二人の距離|comment|1|0|3|0|12.0000|
+|three_choice|お盆前の二人の距離|comment|1|0|3|0|12.0000|
 |three_choice|彼が言えずにいること|comment|2|1|3|0|6.5000|
 |three_choice|今週の関係の兆し|comment|4|1|3|0|3.2500|
 |three_choice|今週の関係の兆し|comment|4|1|3|0|3.2500|
 |three_choice|今週の関係の兆し|comment|4|1|3|0|3.2500|
 |three_choice|彼が思い出す瞬間|comment|6|2|4|0|3.0000|
 |three_choice|彼が思い出す瞬間|comment|7|2|4|0|2.5714|
-|three_choice|8月8日からの二人の流れ|comment|6|2|3|0|2.3333|
