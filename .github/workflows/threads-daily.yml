@@ -140,13 +140,14 @@ jobs:
             python -m app.cli dispatch "${{ steps.route.outputs.slot }}"
           fi
 
-      - name: Save generated images and results
+      - name: Save generated images, results and refresh schedule
         if: ${{ steps.route.outputs.operation == 'prepare' || steps.route.outputs.operation == 'dispatch' }}
         run: |
+          python scripts/generate_schedule.py
           git config user.name "threads-growth-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add generated/ data/tarot_growth.db data/post_history.csv data/analysis_report.md
+          git add generated/ data/tarot_growth.db data/post_history.csv data/analysis_report.md SCHEDULE.md
           if ! git diff --cached --quiet; then
-            git commit -m "data: record scheduled Threads run"
+            git commit -m "data: record scheduled Threads run and refresh schedule"
             git push
           fi
