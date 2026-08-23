@@ -32,13 +32,45 @@ def _with_kai_id(rows):
     return output
 
 
+def _with_reply_breakdown(rows):
+    output = []
+    for row in rows:
+        item = dict(row)
+        user_replies = int(item.pop("user_replies", item.get("replies", 0)) or 0)
+        try:
+            reply_ids = json.loads(item.pop("reply_ids_json", "[]") or "[]")
+        except (TypeError, json.JSONDecodeError):
+            reply_ids = []
+        own_result_replies = len([reply_id for reply_id in reply_ids if reply_id])
+        try:
+            raw = json.loads(item.pop("raw_json", "{}") or "{}")
+        except (TypeError, json.JSONDecodeError):
+            raw = {}
+        raw_replies = None
+        for metric in raw.get("data", []):
+            if metric.get("name") != "replies":
+                continue
+            raw_replies = metric.get("total_value", {}).get("value")
+            if raw_replies is None and metric.get("values"):
+                raw_replies = metric["values"][-1].get("value")
+            break
+        if raw_replies is None:
+            raw_replies = user_replies + own_result_replies
+        item["replies"] = max(int(raw_replies or 0), 0)
+        item["own_result_replies"] = own_result_replies
+        item["user_replies"] = user_replies
+        output.append(item)
+    return output
+
+
 def export_csv(path="data/post_history.csv"):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with connect() as con:
         rows = con.execute(
             """SELECT p.id,d.source_key,p.threads_media_id,p.permalink,
                       p.published_at,d.format,d.topic,d.topic_tag,d.hook_type,
-                      d.cta_type,d.cards_json,d.body,m.views,m.likes,m.replies,m.reposts,
+                      d.cta_type,d.cards_json,d.body,m.views,m.likes,
+                      m.replies AS user_replies,m.raw_json,p.reply_ids_json,m.reposts,
                       m.quotes,m.shares,m.like_rate,m.reply_rate,m.share_rate,
                       m.weighted_score,m.snapshot_label,m.age_hours,m.collected_at
                FROM posts p JOIN drafts d ON d.id=p.draft_id
@@ -49,19 +81,21 @@ def export_csv(path="data/post_history.csv"):
         history = con.execute(
             """SELECT m.collected_at,d.source_key,p.threads_media_id,
                       p.permalink,p.published_at,d.format,d.topic,d.topic_tag,
-                      m.snapshot_label,m.age_hours,m.views,m.likes,m.replies,
+                      m.snapshot_label,m.age_hours,m.views,m.likes,
+                      m.replies AS user_replies,m.raw_json,p.reply_ids_json,
                       m.reposts,m.quotes,m.shares,m.like_rate,m.reply_rate,
                       m.share_rate,m.weighted_score
                FROM metrics m JOIN posts p ON p.id=m.post_id
                JOIN drafts d ON d.id=p.draft_id
                ORDER BY m.collected_at,p.id"""
         ).fetchall()
-    rows = _with_kai_id(rows)
-    history = _with_kai_id(history)
+    rows = _with_reply_breakdown(_with_kai_id(rows))
+    history = _with_reply_breakdown(_with_kai_id(history))
     fields = [
         "id","kai_id","threads_media_id","permalink","published_at","format",
         "topic","topic_tag","hook_type","cta_type",
-        "cards_json","body","views","likes","replies","reposts","quotes","shares","like_rate",
+        "cards_json","body","views","likes","replies","own_result_replies","user_replies",
+        "reposts","quotes","shares","like_rate",
         "reply_rate","share_rate","weighted_score","snapshot_label","age_hours","collected_at",
     ]
     _write_csv(path, rows, fields)
@@ -69,7 +103,8 @@ def export_csv(path="data/post_history.csv"):
     history_fields = [
         "collected_at","kai_id","threads_media_id","permalink","published_at",
         "format","topic","topic_tag","snapshot_label","age_hours","views","likes",
-        "replies","reposts","quotes","shares","like_rate","reply_rate","share_rate",
+        "replies","own_result_replies","user_replies","reposts","quotes","shares",
+        "like_rate","reply_rate","share_rate",
         "weighted_score",
     ]
     _write_csv(HISTORY_PATH, history, history_fields)
@@ -83,12 +118,14 @@ def export_csv(path="data/post_history.csv"):
                       m.reposts,m.quotes,m.shares,m.weighted_score
                FROM metrics m JOIN posts p ON p.id=m.post_id
                JOIN drafts d ON d.id=p.draft_id
+               WHERE m.snapshot_label='24h' AND m.views>0
                ORDER BY m.weighted_score DESC LIMIT 10"""
         ).fetchall()
     lines = [
         "# Threads自動分析レポート",
         "",
         "投稿後24時間・72時間・7日の反応推移を記録し、24時間値を次回の投稿選定へ反映します。",
+        "返信評価は、API生返信数から実際に公開成功した自動結果返信ID数を除いたユーザー返信数を使用します。",
         "",
         "## 学習した投稿パターン",
         "",
@@ -107,7 +144,7 @@ def export_csv(path="data/post_history.csv"):
         "",
         "## 成績上位の投稿",
         "",
-        "|形式|テーマ|CTA|表示|いいね|返信|シェア系|評価値|",
+        "|形式|テーマ|CTA|表示|いいね|ユーザー返信|シェア系|評価値|",
         "|---|---|---|---:|---:|---:|---:|---:|",
     ])
     if best_posts:
@@ -229,6 +266,7 @@ def main():
     plan_cmd.add_argument("--seed", type=int)
     sub.add_parser("pending")
     sub.add_parser("analyze")
+    sub.add_parser("repair-insights")
     sub.add_parser("cycle")
     sub.add_parser("export")
     sub.add_parser("publish-latest")
@@ -252,6 +290,9 @@ def main():
     elif args.cmd == "plan":
         from .planner import plan
         show(plan(args.seed))
+    elif args.cmd == "repair-insights":
+        from .analytics import repair_historical_metrics
+        show(repair_historical_metrics())
     elif args.cmd == "pending":
         from .publisher import pending
         show(pending())

@@ -25,6 +25,40 @@ def _values(raw):
     return out
 
 
+def _own_reply_count(reply_ids_json):
+    """Return only result replies that were successfully published by this bot."""
+    try:
+        reply_ids = json.loads(reply_ids_json or "[]")
+    except (TypeError, json.JSONDecodeError):
+        return 0
+    return len([reply_id for reply_id in reply_ids if reply_id])
+
+
+def _normalized_metrics(values, own_reply_count=0):
+    views = max(int(values.get("views", 0) or 0), 0)
+    likes = max(int(values.get("likes", 0) or 0), 0)
+    raw_replies = max(int(values.get("replies", 0) or 0), 0)
+    replies = max(raw_replies - own_reply_count, 0)
+    reposts = max(int(values.get("reposts", 0) or 0), 0)
+    quotes = max(int(values.get("quotes", 0) or 0), 0)
+    shares = max(int(values.get("shares", 0) or 0), 0)
+    if views == 0:
+        like_rate = reply_rate = share_rate = weighted = 0.0
+    else:
+        like_rate = likes / views
+        reply_rate = replies / views
+        share_rate = (reposts + quotes + shares) / views
+        # Small-reach posts can show 100% rates from a single interaction.
+        # Add a 50-view prior so they do not dominate the learning rankings.
+        weighted = (likes + replies * 4 + (reposts + quotes + shares) * 5) / (views + 50)
+    return {
+        "views": views, "likes": likes, "replies": replies,
+        "reposts": reposts, "quotes": quotes, "shares": shares,
+        "like_rate": like_rate, "reply_rate": reply_rate,
+        "share_rate": share_rate, "weighted_score": weighted,
+    }
+
+
 def _age_hours(published_at):
     text = published_at.replace("Z", "+00:00")
     published = datetime.fromisoformat(text)
@@ -97,38 +131,34 @@ def analyze():
                 )
                 errors.append({"post_id": post["id"], "error": str(exc)})
                 continue
-            v = _values(raw)
-            views = max(int(v.get("views", 0)), 1)
-            like_rate = int(v.get("likes", 0)) / views
-            reply_rate = int(v.get("replies", 0)) / views
-            share_count = int(v.get("reposts", 0)) + int(v.get("quotes", 0)) + int(v.get("shares", 0))
-            share_rate = share_count / views
-            weighted = like_rate + reply_rate * 4 + share_rate * 5
+            v = _normalized_metrics(
+                _values(raw), _own_reply_count(post["reply_ids_json"])
+            )
             con.execute(
                 """INSERT INTO metrics(
                    post_id,age_hours,snapshot_label,views,likes,replies,reposts,quotes,shares,
                    like_rate,reply_rate,share_rate,weighted_score,raw_json
                    ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (
-                    post["id"], age, snapshot_label, views,
-                    v.get("likes", 0), v.get("replies", 0), v.get("reposts", 0),
-                    v.get("quotes", 0), v.get("shares", 0), like_rate,
-                    reply_rate, share_rate, weighted, jdump(raw),
+                    post["id"], age, snapshot_label, v["views"],
+                    v["likes"], v["replies"], v["reposts"],
+                    v["quotes"], v["shares"], v["like_rate"],
+                    v["reply_rate"], v["share_rate"], v["weighted_score"], jdump(raw),
                 ),
             )
             # 学習値は24時間スナップショットだけで更新し、同じ投稿の重複学習を防ぐ。
             weights = {}
             if snapshot_label == "24h":
                 weights = {
-                    "format": _update_knowledge(con, "format", post["format"], weighted),
-                    "topic": _update_knowledge(con, "topic", post["topic"], weighted),
-                    "cta": _update_knowledge(con, "cta", post["cta_type"], weighted),
+                    "format": _update_knowledge(con, "format", post["format"], v["weighted_score"]),
+                    "topic": _update_knowledge(con, "topic", post["topic"], v["weighted_score"]),
+                    "cta": _update_knowledge(con, "cta", post["cta_type"], v["weighted_score"]),
                 }
             results.append({
                 "post_id": post["id"], "snapshot": snapshot_label,
-                "views": views, "like_rate": like_rate,
-                "reply_rate": reply_rate, "share_rate": share_rate,
-                "weighted_score": weighted, "updated_weights": weights,
+                "views": v["views"], "like_rate": v["like_rate"],
+                "reply_rate": v["reply_rate"], "share_rate": v["share_rate"],
+                "weighted_score": v["weighted_score"], "updated_weights": weights,
             })
     if errors:
         log_event("insight_fetch_failed", {"errors": errors})
@@ -137,3 +167,34 @@ def analyze():
         {"posts": results, "requests_used": requests_used, "errors": len(errors)},
     )
     return results
+
+
+def repair_historical_metrics():
+    """Recalculate stored snapshots from raw API responses using corrected rules."""
+    repaired = 0
+    with connect() as con:
+        rows = con.execute(
+            """SELECT m.id,m.raw_json,p.reply_ids_json,d.format,d.topic,d.cta_type,
+                      m.snapshot_label
+               FROM metrics m JOIN posts p ON p.id=m.post_id
+               JOIN drafts d ON d.id=p.draft_id ORDER BY m.id"""
+        ).fetchall()
+        con.execute("DELETE FROM knowledge")
+        for row in rows:
+            raw = json.loads(row["raw_json"] or "{}")
+            v = _normalized_metrics(
+                _values(raw), _own_reply_count(row["reply_ids_json"])
+            )
+            con.execute(
+                """UPDATE metrics SET views=?,likes=?,replies=?,reposts=?,quotes=?,shares=?,
+                          like_rate=?,reply_rate=?,share_rate=?,weighted_score=? WHERE id=?""",
+                (v["views"], v["likes"], v["replies"], v["reposts"], v["quotes"],
+                 v["shares"], v["like_rate"], v["reply_rate"], v["share_rate"],
+                 v["weighted_score"], row["id"]),
+            )
+            if row["snapshot_label"] == "24h" and v["views"] > 0:
+                _update_knowledge(con, "format", row["format"], v["weighted_score"])
+                _update_knowledge(con, "topic", row["topic"], v["weighted_score"])
+                _update_knowledge(con, "cta", row["cta_type"], v["weighted_score"])
+            repaired += 1
+    return {"status": "repaired", "snapshots": repaired}
